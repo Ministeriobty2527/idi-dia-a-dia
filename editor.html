@@ -1465,47 +1465,42 @@ function AIPanel({ form, onInsert, onClose }) {
   const [prompt, setPrompt]   = useState('');
   const [result, setResult]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey]   = useState(() => localStorage.getItem('idi_ai_key') || '');
-  const [showKey, setShowKey] = useState(!localStorage.getItem('idi_ai_key'));
   const [copied, setCopied]   = useState(false);
+  const [errMsg, setErrMsg]   = useState('');
 
-  const buildSystemPrompt = () => {
-    const base = `Você é um editor especializado em reflexões cristãs sobre Israel, o judaísmo e missões urbanas. Tom: devocional, editorial, culto — mas acessível. Responda SOMENTE em português do Brasil.`;
-    const ctx  = `Título: ${form.titulo || '(sem título)'}\nCategoria: ${form.categoria}\nResumo: ${form.resumo || '(sem resumo)'}\nTexto atual:\n${form.conteudo || '(vazio)'}`;
-    const instructions = {
-      expand:    `${base}\n\nCom base no contexto abaixo, escreva um post completo com 5-7 parágrafos ricos e fluidos, sem subtítulos, separados por linha em branco. NÃO use markdown além de parágrafos simples.\n\n${ctx}\n\nInstrução adicional: ${prompt || 'nenhuma'}`,
-      improve:   `${base}\n\nMelhore o texto abaixo mantendo a voz e o tema. Retorne apenas o texto melhorado, parágrafos separados por linha em branco, sem comentários extras.\n\n${form.conteudo}\n\nInstrução: ${prompt || 'melhorar fluência e clareza'}`,
-      title:     `${base}\n\nSugira exatamente 5 títulos criativos e editoriais para um post sobre:\n${ctx}\n\nRetorne apenas os 5 títulos, um por linha, sem numeração.`,
-      summary:   `${base}\n\nEscreva um resumo editorial de 1 a 2 frases (máx. 40 palavras) para o post abaixo. Retorne apenas o resumo.\n\n${ctx}`,
-      translate: `Traduza o texto abaixo fielmente para o português do Brasil, mantendo o tom devocional. Retorne apenas o texto traduzido, parágrafos separados por linha em branco.\n\n${prompt || form.conteudo}`,
+  const buildPrompt = () => {
+    const ctx = `Título: ${form.titulo || '(sem título)'}\nCategoria: ${form.categoria}\nResumo: ${form.resumo || ''}\nTexto atual:\n${form.conteudo || '(vazio)'}`;
+    const base = 'Você é um editor especializado em reflexões cristãs sobre Israel, judaísmo e missões urbanas. Tom: devocional, editorial, culto mas acessível. Responda SOMENTE em português do Brasil.';
+    const map = {
+      expand:    `${base}\n\nEscreva um post completo com 5-7 parágrafos, sem subtítulos, separados por linha em branco. NÃO use markdown além de parágrafos.\n\n${ctx}\n\nInstrução extra: ${prompt || 'nenhuma'}`,
+      improve:   `${base}\n\nMelhore o texto mantendo voz e tema. Retorne só o texto melhorado, parágrafos separados por linha em branco.\n\n${form.conteudo}\n\nInstrução: ${prompt || 'melhorar fluência e clareza'}`,
+      title:     `${base}\n\nSugira exatamente 5 títulos criativos para:\n${ctx}\n\nRetorne apenas os 5 títulos, um por linha, sem numeração.`,
+      summary:   `${base}\n\nEscreva um resumo de 1-2 frases (máx. 40 palavras) para:\n${ctx}`,
+      translate: `Traduza fielmente para português do Brasil, mantendo tom devocional. Retorne apenas o texto traduzido.\n\n${prompt || form.conteudo}`,
     };
-    return instructions[mode];
+    return map[mode] || map.expand;
   };
 
   const run = async () => {
-    if (!apiKey) { setShowKey(true); return; }
-    setLoading(true); setResult('');
+    setLoading(true); setResult(''); setErrMsg('');
     try {
       const res = await fetch('/.netlify/functions/ai-assist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: buildSystemPrompt(), apiKey })
+        body: JSON.stringify({ prompt: buildPrompt() })
       });
-      if (!res.ok) { const e = await res.text(); throw new Error(e); }
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro desconhecido');
       setResult(data.text || '(resposta vazia)');
     } catch (e) {
-      setResult('⚠️ Erro: ' + (e.message || 'tente novamente'));
+      setErrMsg(e.message || 'Erro ao conectar. Verifique se a ANTHROPIC_API_KEY está configurada na Netlify.');
     }
     setLoading(false);
   };
 
-  const saveKey = () => { localStorage.setItem('idi_ai_key', apiKey); setShowKey(false); };
-
   const handleInsert = () => {
-    const lines = result.split('\n').filter(Boolean);
-    if (mode === 'title')   { onInsert('titulo', lines[0] || result); return; }
-    if (mode === 'summary') { onInsert('resumo', result); return; }
+    if (mode === 'title')   { onInsert('titulo',  result.split('\n').filter(Boolean)[0] || result); return; }
+    if (mode === 'summary') { onInsert('resumo',  result); return; }
     onInsert('conteudo', result);
   };
 
@@ -1522,75 +1517,38 @@ function AIPanel({ form, onInsert, onClose }) {
         <span>✦ Assistente IA</span>
         <button onClick={onClose} className="ai-close" title="Fechar">×</button>
       </div>
-
-      {showKey ? (
-        <div className="ai-scroll">
-          <div className="ai-key-section">
-            <p className="ai-key-info">
-              Para usar o assistente, insira sua chave da API Anthropic (Claude).
-              Ela fica salva só no seu navegador, nunca no servidor.
-            </p>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              placeholder="sk-ant-api03-…"
-              className="ai-key-input"
-              autoFocus
-            />
-            <a href="https://console.anthropic.com/account/keys" target="_blank" rel="noopener" className="ai-key-link">
-              Criar chave em console.anthropic.com ↗
-            </a>
-            <button onClick={saveKey} className="ai-key-save" disabled={!apiKey.startsWith('sk-')}>
-              Salvar e usar assistente
+      <div className="ai-scroll">
+        <div className="ai-modes">
+          {AI_MODES.map(m => (
+            <button key={m.id} className={`ai-mode-btn ${mode === m.id ? 'active' : ''}`}
+              onClick={() => { setMode(m.id); setResult(''); setPrompt(''); setErrMsg(''); }}>
+              {m.label}
             </button>
-          </div>
+          ))}
         </div>
-      ) : (
-        <div className="ai-scroll">
-          <div className="ai-modes">
-            {AI_MODES.map(m => (
-              <button
-                key={m.id}
-                className={`ai-mode-btn ${mode === m.id ? 'active' : ''}`}
-                onClick={() => { setMode(m.id); setResult(''); setPrompt(''); }}
-              >
-                {m.label}
+        <textarea className="ai-prompt" rows="3" value={prompt}
+          onChange={e => setPrompt(e.target.value)}
+          placeholder={modeObj?.placeholder} />
+        <button className="ai-run" onClick={run} disabled={loading}>
+          {loading ? <span className="ai-loading-dots">Gerando</span> : '✦ Gerar com IA'}
+        </button>
+        {errMsg && (
+          <div style={{ background: 'oklch(0.97 0.02 28)', border: '1px solid oklch(0.88 0.08 28)', borderRadius: 8, padding: '0.75rem 1rem', fontSize: '0.88rem', fontFamily: 'var(--sans)', color: 'oklch(0.42 0.14 28)', lineHeight: 1.45 }}>
+            ⚠️ {errMsg}
+          </div>
+        )}
+        {result && (
+          <div className="ai-result">
+            <div className="ai-result-text">{result}</div>
+            <div className="ai-result-actions">
+              <button className="ai-insert-btn" onClick={handleInsert}>
+                {mode === 'title' ? '↓ Usar como título' : mode === 'summary' ? '↓ Usar como resumo' : '↓ Usar como conteúdo'}
               </button>
-            ))}
-          </div>
-
-          <textarea
-            className="ai-prompt"
-            rows="3"
-            value={prompt}
-            onChange={e => setPrompt(e.target.value)}
-            placeholder={modeObj?.placeholder}
-          />
-
-          <button className="ai-run" onClick={run} disabled={loading}>
-            {loading ? <span className="ai-loading-dots">Gerando</span> : '✦ Gerar com IA'}
-          </button>
-
-          {result && (
-            <div className="ai-result">
-              <div className="ai-result-text">{result}</div>
-              <div className="ai-result-actions">
-                <button className="ai-insert-btn" onClick={handleInsert}>
-                  {mode === 'title' ? '↓ Usar como título' : mode === 'summary' ? '↓ Usar como resumo' : '↓ Usar como conteúdo'}
-                </button>
-                <button className="ai-copy-btn" onClick={copyResult}>
-                  {copied ? '✓' : '📋'}
-                </button>
-              </div>
+              <button className="ai-copy-btn" onClick={copyResult}>{copied ? '✓' : '📋'}</button>
             </div>
-          )}
-
-          <button className="ai-key-change" onClick={() => setShowKey(true)}>
-            🔑 Trocar chave API
-          </button>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
