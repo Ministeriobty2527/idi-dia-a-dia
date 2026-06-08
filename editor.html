@@ -1451,51 +1451,93 @@ function ImageEditor({ src, onSave, onClose, sb }) {
   );
 }
 
-  // ─── AI ASSISTANT PANEL ────────────────────────────────────────────────
-const AI_MODES = [
-  { id: 'expand',    label: '✦ Escrever post completo', placeholder: 'Descreva a ideia principal…' },
-  { id: 'improve',   label: '↑ Melhorar o texto atual', placeholder: 'Instrução extra (opcional)…' },
-  { id: 'title',     label: '≡ Sugerir 5 títulos',      placeholder: 'Instrução extra (opcional)…' },
-  { id: 'summary',   label: '◈ Gerar resumo automático',placeholder: 'Instrução extra (opcional)…' },
-  { id: 'translate', label: '⇌ Traduzir para PT-BR',    placeholder: 'Cole o texto para traduzir…' },
-];
+  // ─── OFFLINE WRITING ASSISTANT ────────────────────────────────────────
+const CATS = {
+  'Israel e a Igreja':        'A Igreja e Israel não são rivais na história da redenção — são parceiras num único plano eterno. Ignorar essa dimensão é perder metade do Evangelho.',
+  'Profecia e Escatologia':   'A profecia não é um mapa do futuro para satisfazer a curiosidade, mas uma bússola para o presente. Cada palavra profética nos convoca a uma resposta agora.',
+  'Torah e Vida Hebraica':    'A Torah não foi abolida — foi cumprida. E aquilo que foi cumprido em Yeshua continua sendo luz para os nossos pés, lâmpada para o nosso caminho.',
+  'Oração e Intercessão':     'A intercessão é o trabalho mais invisível e mais poderoso do Reino. Nela, o céu e a terra se encontram, e histórias são escritas antes mesmo de serem vividas.',
+  'Formação Interior':        'Nenhum ministério cresce além do caráter de quem o carrega. A formação interior não é um tema periférico — é o fundamento de tudo que dura.',
+  'Festas e Calendário Bíblico': 'O calendário bíblico não é uma questão de tradição — é uma questão de identidade. As festas são sombras proféticas das coisas que já vieram e das que ainda virão.',
+  'Liderança Apostólica':     'Liderança apostólica não é um título — é uma postura. É a disposição de ser o primeiro a obedecer, o último a cobrar, e o único a ficar quando todos saem.',
+  'Antissemitismo e Sionismo':'O antissemitismo não é apenas um problema político ou histórico — é um sintoma espiritual. Toda vez que ele ressurge, a Igreja é chamada a decidir de que lado está.',
+};
+
+function generateOffline(mode, form, extra) {
+  const titulo = (form.titulo || 'este tema').trim();
+  const cat    = form.categoria || 'Israel e a Igreja';
+  const corpo  = form.conteudo || '';
+  const catFrase = CATS[cat] || '';
+
+  if (mode === 'expand') {
+    return [
+      `${corpo ? corpo + '\n\n' : ''}A palavra de Deus não retorna vazia. Quando nos debruçamos sobre ${titulo}, somos confrontados com uma verdade que transcende o tempo e os sistemas religiosos — uma verdade ao mesmo tempo profundamente hebraica e radicalmente apostólica.`,
+      catFrase,
+      `[Desenvolva aqui o ponto central sobre: ${titulo}${extra ? ' — ' + extra : ''}]`,
+      `Quando os apóstolos proclamaram o evangelho do Reino, não separaram a mensagem de Israel da missão às nações. As raízes e os frutos fazem parte da mesma oliveira. Redescobrir isso não é arqueologia espiritual — é urgência profética.`,
+      `Que essa reflexão não fique apenas na mente. Que ela desça ao coração, mova as mãos e redirecione os pés. Porque em última análise, tudo o que aprendemos das Escrituras nos convida a uma resposta — e essa resposta começa hoje.`
+    ].join('\n\n');
+  }
+
+  if (mode === 'improve') {
+    if (!corpo) return 'Escreva o conteúdo do post primeiro para que eu possa sugerir melhorias.';
+    const paras = corpo.split('\n\n').map(p => p.trim()).filter(Boolean);
+    const melhorados = paras.map((p, i) => {
+      if (i === 0 && p.length < 80) return p + ' Esta é uma verdade que o corpo de Yeshua precisa revisitar com frequência.';
+      return p;
+    });
+    return '[Versão revisada — ajuste conforme necessário:]\n\n' + melhorados.join('\n\n');
+  }
+
+  if (mode === 'title') {
+    const base = titulo.replace(/[?!.:]/g, '').trim();
+    return [
+      `${base}: o que as Escrituras revelam`,
+      `A profundidade de ${base} na tradição hebraica`,
+      `${base} — uma reflexão para o corpo de Yeshua`,
+      `Por que ${base} importa para a Igreja hoje`,
+      `${base}: da Galileia ao Brasil`,
+    ].join('\n');
+  }
+
+  if (mode === 'summary') {
+    const src = corpo || form.resumo || titulo;
+    const frases = src.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 30);
+    if (frases.length >= 2) return frases.slice(0, 2).join(' ').trim();
+    if (frases.length === 1) return frases[0].trim();
+    return `Uma reflexão sobre ${titulo} — para o corpo de Yeshua em língua portuguesa, no contexto de ${cat}.`;
+  }
+
+  if (mode === 'translate') {
+    const src = extra || corpo;
+    if (!src) return 'Cole o texto a traduzir no campo de instrução acima.';
+    return `[Sugestão: cole o texto abaixo no DeepL (deepl.com) para tradução de qualidade, depois volte aqui para revisar o estilo:]\n\n${src}\n\n[Dica: após traduzir, use o modo "Melhorar texto" para ajustar ao estilo editorial IDI.]`;
+  }
+
+  return 'Selecione um modo acima.';
+}
 
 function AIPanel({ form, onInsert, onClose }) {
-  const [mode, setMode]       = useState('expand');
-  const [prompt, setPrompt]   = useState('');
-  const [result, setResult]   = useState('');
+  const [mode, setMode]     = useState('expand');
+  const [prompt, setPrompt] = useState('');
+  const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
-  const [copied, setCopied]   = useState(false);
-  const [errMsg, setErrMsg]   = useState('');
+  const [copied, setCopied] = useState(false);
 
-  const buildPrompt = () => {
-    const ctx = `Título: ${form.titulo || '(sem título)'}\nCategoria: ${form.categoria}\nResumo: ${form.resumo || ''}\nTexto atual:\n${form.conteudo || '(vazio)'}`;
-    const base = 'Você é um editor especializado em reflexões cristãs sobre Israel, judaísmo e missões urbanas. Tom: devocional, editorial, culto mas acessível. Responda SOMENTE em português do Brasil.';
-    const map = {
-      expand:    `${base}\n\nEscreva um post completo com 5-7 parágrafos, sem subtítulos, separados por linha em branco. NÃO use markdown além de parágrafos.\n\n${ctx}\n\nInstrução extra: ${prompt || 'nenhuma'}`,
-      improve:   `${base}\n\nMelhore o texto mantendo voz e tema. Retorne só o texto melhorado, parágrafos separados por linha em branco.\n\n${form.conteudo}\n\nInstrução: ${prompt || 'melhorar fluência e clareza'}`,
-      title:     `${base}\n\nSugira exatamente 5 títulos criativos para:\n${ctx}\n\nRetorne apenas os 5 títulos, um por linha, sem numeração.`,
-      summary:   `${base}\n\nEscreva um resumo de 1-2 frases (máx. 40 palavras) para:\n${ctx}`,
-      translate: `Traduza fielmente para português do Brasil, mantendo tom devocional. Retorne apenas o texto traduzido.\n\n${prompt || form.conteudo}`,
-    };
-    return map[mode] || map.expand;
-  };
+  const MODES = [
+    { id: 'expand',    label: '✦ Expandir em post completo', ph: 'Instrução extra (opcional)…'     },
+    { id: 'improve',   label: '↑ Melhorar o texto',          ph: 'Instrução extra (opcional)…'     },
+    { id: 'title',     label: '≡ Sugerir 5 títulos',         ph: 'Instrução extra (opcional)…'     },
+    { id: 'summary',   label: '◈ Gerar resumo',              ph: 'Instrução extra (opcional)…'     },
+    { id: 'translate', label: '⇌ Guia de tradução PT-BR',    ph: 'Cole o texto a traduzir aqui…'   },
+  ];
 
-  const run = async () => {
-    setLoading(true); setResult(''); setErrMsg('');
-    try {
-      const res = await fetch('/.netlify/functions/ai-assist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: buildPrompt() })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro desconhecido');
-      setResult(data.text || '(resposta vazia)');
-    } catch (e) {
-      setErrMsg(e.message || 'Erro ao conectar. Verifique se a ANTHROPIC_API_KEY está configurada na Netlify.');
-    }
-    setLoading(false);
+  const run = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setResult(generateOffline(mode, form, prompt));
+      setLoading(false);
+    }, 350);
   };
 
   const handleInsert = () => {
@@ -1504,47 +1546,45 @@ function AIPanel({ form, onInsert, onClose }) {
     onInsert('conteudo', result);
   };
 
-  const copyResult = async () => {
+  const copy = async () => {
     await navigator.clipboard.writeText(result).catch(() => {});
     setCopied(true); setTimeout(() => setCopied(false), 1800);
   };
 
-  const modeObj = AI_MODES.find(m => m.id === mode);
+  const mObj = MODES.find(m => m.id === mode);
 
   return (
     <div className="ai-panel">
       <div className="ai-panel-head">
-        <span>✦ Assistente IA</span>
-        <button onClick={onClose} className="ai-close" title="Fechar">×</button>
+        <span>✦ Assistente de escrita</span>
+        <button onClick={onClose} className="ai-close">×</button>
       </div>
       <div className="ai-scroll">
+        <p style={{ fontFamily:'var(--serif-body)', fontStyle:'italic', fontSize:'0.85rem', color:'var(--ink-3)', lineHeight:1.45, paddingBottom:'0.8rem', borderBottom:'1px solid var(--rule)', marginBottom:'0.6rem' }}>
+          Baseado no título, categoria e texto que você preencheu.
+        </p>
         <div className="ai-modes">
-          {AI_MODES.map(m => (
-            <button key={m.id} className={`ai-mode-btn ${mode === m.id ? 'active' : ''}`}
-              onClick={() => { setMode(m.id); setResult(''); setPrompt(''); setErrMsg(''); }}>
+          {MODES.map(m => (
+            <button key={m.id} className={`ai-mode-btn ${mode===m.id?'active':''}`}
+              onClick={() => { setMode(m.id); setResult(''); setPrompt(''); }}>
               {m.label}
             </button>
           ))}
         </div>
         <textarea className="ai-prompt" rows="3" value={prompt}
           onChange={e => setPrompt(e.target.value)}
-          placeholder={modeObj?.placeholder} />
+          placeholder={mObj?.ph} />
         <button className="ai-run" onClick={run} disabled={loading}>
-          {loading ? <span className="ai-loading-dots">Gerando</span> : '✦ Gerar com IA'}
+          {loading ? '…gerando' : '✦ Gerar'}
         </button>
-        {errMsg && (
-          <div style={{ background: 'oklch(0.97 0.02 28)', border: '1px solid oklch(0.88 0.08 28)', borderRadius: 8, padding: '0.75rem 1rem', fontSize: '0.88rem', fontFamily: 'var(--sans)', color: 'oklch(0.42 0.14 28)', lineHeight: 1.45 }}>
-            ⚠️ {errMsg}
-          </div>
-        )}
         {result && (
           <div className="ai-result">
             <div className="ai-result-text">{result}</div>
             <div className="ai-result-actions">
               <button className="ai-insert-btn" onClick={handleInsert}>
-                {mode === 'title' ? '↓ Usar como título' : mode === 'summary' ? '↓ Usar como resumo' : '↓ Usar como conteúdo'}
+                {mode==='title' ? '↓ Usar 1º título' : mode==='summary' ? '↓ Usar como resumo' : '↓ Usar como conteúdo'}
               </button>
-              <button className="ai-copy-btn" onClick={copyResult}>{copied ? '✓' : '📋'}</button>
+              <button className="ai-copy-btn" onClick={copy}>{copied ? '✓' : '📋'}</button>
             </div>
           </div>
         )}
