@@ -1223,6 +1223,11 @@ a { color: inherit; }
 <script src="supabase-config.js"></script>
 
 <script type="text/babel" data-presets="env,react">
+// Reset AI key if URL has ?resetai=1
+if (new URLSearchParams(location.search).get('resetai')) {
+  localStorage.removeItem('idi_ai_key');
+  history.replaceState({}, '', location.pathname);
+}
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const CATEGORIAS = [
