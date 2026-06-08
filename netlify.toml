@@ -1,17 +1,11 @@
-# Configuração da Netlify para o IDI · Dia a Dia
+# IDI · Dia a Dia — Netlify config
 
 [build]
   publish = "."
 
-# Diretório das funções serverless (inclusive ai-assist.js)
 [functions]
   directory = "netlify/functions"
 
-# Node 18 tem fetch nativo — necessário para chamar a API Anthropic
-[functions.ai-assist]
-  node_bundler = "esbuild"
-
-# Função de borda: per-post share pages (Open Graph thumbnails)
 [[edge_functions]]
   path = "/p/*"
   function = "share"
