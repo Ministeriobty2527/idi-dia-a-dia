@@ -15,3 +15,4 @@
 [[edge_functions]]
   path = "/p/*"
   function = "share"
+
