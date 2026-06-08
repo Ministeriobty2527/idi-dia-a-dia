@@ -1914,13 +1914,6 @@ function App() {
           <span>Dia a Dia</span>
         </div>
         <div className="ed-top-actions">
-          <button
-            type="button"
-            className={`ai-toggle ${aiPanelOpen ? 'active' : ''}`}
-            onClick={() => setAiPanelOpen(v => !v)}
-          >
-            ✦ {aiPanelOpen ? 'Fechar IA' : 'Assistente IA'}
-          </button>
           {session && (
             <span className="ed-user-chip">
               {session.user.email}
@@ -2370,14 +2363,7 @@ function ManagePosts({ dbPosts, existing, onEdit, onDelete, busyPk, fmtDate }) {
         />
       )}
 
-      {/* AI ASSISTANT PANEL */}
-      {aiPanelOpen && (
-        <AIPanel
-          form={form}
-          onInsert={(field, text) => { set(field, text); setAiPanelOpen(false); }}
-          onClose={() => setAiPanelOpen(false)}
-        />
-      )}
+
     </div>
   );
 }
