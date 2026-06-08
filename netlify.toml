@@ -14,5 +14,7 @@
 # Função de borda: per-post share pages (Open Graph thumbnails)
 [[edge_functions]]
   path = "/p/*"
-  function = "share"
+  function = "share" 
+
+
 
