@@ -1,0 +1,3 @@
+# SPA routing: links como /p/<slug> carregam o app, que lê o slug da
+# URL e abre o post correspondente automaticamente.
+/p/*  /index.html  200

@@ -1,0 +1,12 @@
+{
+  "_comentario": "MODELO de artigo novo. Copie o objeto abaixo (sem o campo _comentario), cole em data/articles.json antes do ] final, e preencha os campos.",
+
+  "id": 999,
+  "titulo": "Cole aqui o título do artigo",
+  "autor": "Nome do autor original",
+  "data": "2026-05-27",
+  "categoria": "Israel e a Igreja",
+  "resumo": "Uma a duas frases que abrem o artigo — o equivalente a um lead de jornal.",
+  "conteudo": "Primeiro parágrafo do artigo.\n\nSegundo parágrafo (separado por linha em branco dupla).\n\nTerceiro parágrafo.",
+  "fonte_original": "https://link-da-fonte-original.com"
+}

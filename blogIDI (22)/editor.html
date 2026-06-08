@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Editor de Posts · IDI Dia a Dia</title>
+<link rel="icon" type="image/png" href="favicon.png?v=3" />
+<link rel="shortcut icon" type="image/png" href="favicon.png?v=3" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --paper: #f1ebde; --paper-2: #ece4d2; --paper-3: #f7f2e8;
+  --ink: #1a1814; --ink-2: #3a3631; --ink-3: #6b665d; --ink-mute: #8a847a;
+  --accent: oklch(0.46 0.13 28); --accent-soft: oklch(0.46 0.13 28 / 0.12);
+  --rule: rgba(20,18,12,0.16); --rule-strong: rgba(20,18,12,0.45);
+  --serif-display: 'Instrument Serif', Georgia, serif;
+  --serif-body: 'EB Garamond', Georgia, serif;
+  --sans: 'DM Sans', Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--serif-body);
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; }
+::selection { background: var(--accent); color: var(--paper); }
+
+/* Top bar */
+.ed-top {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.8rem clamp(1rem, 3vw, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.ed-brand { display: flex; align-items: baseline; gap: 0.6rem; }
+.ed-brand h1 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+.ed-brand h1 em { font-style: italic; color: oklch(0.78 0.13 50); }
+.ed-brand span {
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: oklch(0.72 0 0);
+}
+.ed-top-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.ed-btn {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.ed-btn-ghost { border: 1px solid rgba(255,255,255,0.3); color: var(--paper); }
+.ed-btn-ghost:hover { background: rgba(255,255,255,0.12); }
+.ed-btn-primary { background: oklch(0.62 0.16 45); color: #fff; }
+.ed-btn-primary:hover { background: oklch(0.7 0.16 55); }
+.ed-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Layout */
+.ed-wrap {
+  max-width: 1500px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: calc(100vh - 60px);
+}
+.ed-form-col {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-right: 1px solid var(--rule);
+}
+.ed-preview-col {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  background: var(--paper-2);
+  position: relative;
+}
+
+/* Helper banner */
+.ed-help {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.8rem;
+  font-family: var(--serif-body);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.ed-help strong { color: var(--accent); }
+.ed-help .ed-status { font-style: italic; }
+
+/* Section label */
+.ed-section-label {
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+/* Fields */
+.ed-field { margin-bottom: 1.3rem; }
+.ed-field label {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin-bottom: 0.5rem;
+}
+.ed-field label .ed-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-mute);
+  font-family: var(--serif-body);
+  font-size: 0.85rem;
+  margin-left: 0.4rem;
+}
+.ed-field input,
+.ed-field select,
+.ed-field textarea {
+  width: 100%;
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-family: var(--serif-body);
+  font-size: 1.05rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ed-field input:focus,
+.ed-field select:focus,
+.ed-field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ed-field textarea { resize: vertical; line-height: 1.6; }
+.ed-field select { cursor: pointer; }
+.ed-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.ed-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-family: var(--serif-body);
+  font-size: 1rem;
+  color: var(--ink-2);
+}
+.ed-check input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.ed-check em { font-style: italic; color: var(--accent); }
+
+.ed-charcount {
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+  text-align: right;
+  margin-top: 0.3rem;
+}
+
+/* Image upload field */
+.ed-img-field { display: flex; flex-direction: column; gap: 0.7rem; }
+
+/* Video field */
+.ed-video-field { display: flex; flex-direction: column; gap: 0.7rem; }
+.ed-video-preview { display: flex; flex-direction: column; gap: 0.6rem; }
+.ed-video-iframe {
+  width: 100%; aspect-ratio: 16/9;
+  border: 1px solid var(--rule); border-radius: 8px;
+  background: #000;
+}
+.ed-video-native {
+  width: 100%; max-height: 300px;
+  border: 1px solid var(--rule); border-radius: 8px;
+  background: #000;
+}
+.ed-video-url-input { font-family: var(--sans); font-size: 0.92rem; }
+/* Preview video */
+.pv-video { margin: 1rem 0; }
+.pv-video-iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 6px; background: #000; }
+.pv-video-native { width: 100%; max-height: 240px; border-radius: 6px; }
+.ed-img-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1.8rem 1rem;
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: 10px;
+  background: var(--paper-3);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+.ed-img-drop:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ed-img-drop.uploading { opacity: 0.7; cursor: wait; }
+.ed-img-ic { font-size: 1.6rem; }
+.ed-img-drop-txt {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.ed-img-drop-sub {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ink-mute);
+}
+.ed-img-preview {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+}
+.ed-img-preview img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+}
+.ed-img-remove {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(20,18,12,0.78);
+  color: #fff;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s;
+}
+.ed-img-remove:hover { background: oklch(0.5 0.18 28); }
+.ed-img-or {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--ink-mute);
+}
+.ed-img-or::before, .ed-img-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* Preview cover */
+.pv-cover {
+  margin: 0 0 1.5rem;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pv-cover img { width: 100%; height: auto; display: block; }
+
+/* Preview */
+.ed-preview-label {
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.ed-preview-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+.pv-kicker {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 0.6rem;
+  display: block;
+}
+.pv-title {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  text-wrap: balance;
+}
+.pv-deck {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin-bottom: 1.2rem;
+  text-wrap: pretty;
+}
+.pv-meta {
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--ink);
+}
+.pv-meta em { font-style: normal; color: var(--ink); font-weight: 500; letter-spacing: 0.16em; }
+.pv-meta .pv-sep { color: var(--ink-mute); }
+.pv-body p {
+  font-family: var(--serif-body);
+  font-size: 1.12rem;
+  line-height: 1.7;
+  color: var(--ink);
+  margin-bottom: 1.2rem;
+  text-wrap: pretty;
+}
+.pv-body .pv-dropcap::first-letter {
+  font-family: var(--serif-display);
+  font-size: 3.6rem;
+  line-height: 0.8;
+  float: left;
+  margin: 0.1rem 0.5rem -0.2rem 0;
+  color: var(--accent);
+}
+.pv-source {
+  margin-top: 2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--ink-3);
+  word-break: break-all;
+}
+.pv-source a { color: var(--accent); }
+.pv-empty {
+  color: var(--ink-mute);
+  font-style: italic;
+  font-family: var(--serif-body);
+  padding: 3rem 0;
+  text-align: center;
+}
+
+/* JSON output modal */
+.ed-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,13,10,0.6);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.ed-modal {
+  background: var(--paper-3);
+  border-radius: 18px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 40px 80px -20px rgba(20,18,12,0.5);
+}
+.ed-modal-head {
+  padding: 1.5rem 1.8rem 1.2rem;
+  border-bottom: 1px solid var(--rule);
+}
+.ed-modal-head h2 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+.ed-modal-head h2 em { font-style: italic; color: var(--accent); }
+.ed-modal-head p {
+  font-family: var(--serif-body);
+  font-style: italic;
+  color: var(--ink-2);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.ed-modal-body { padding: 1.5rem 1.8rem; overflow-y: auto; }
+.ed-steps { list-style: none; counter-reset: s; margin-bottom: 1.5rem; }
+.ed-steps li {
+  counter-increment: s;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0.8rem;
+  padding: 0.6rem 0;
+  font-family: var(--serif-body);
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.ed-steps li::before {
+  content: counter(s);
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--accent);
+  text-align: center;
+}
+.ed-steps li strong { color: var(--ink); }
+.ed-code {
+  background: #1a1814;
+  color: #ede5cf;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  font-family: 'JetBrains Mono', Menlo, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+.ed-modal-foot {
+  padding: 1.2rem 1.8rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ed-btn-dark { background: var(--ink); color: var(--paper); }
+.ed-btn-dark:hover { background: var(--accent); }
+.ed-btn-outline { border: 1px solid var(--rule); color: var(--ink); }
+.ed-btn-outline:hover { border-color: var(--ink); }
+.ed-btn-danger { border: 1px solid oklch(0.6 0.16 28); color: oklch(0.5 0.16 28); }
+.ed-btn-danger:hover { background: oklch(0.55 0.18 28); color: #fff; border-color: oklch(0.55 0.18 28); }
+.ed-btn-danger:disabled { opacity: 0.5; cursor: wait; }
+.ed-copied { color: oklch(0.55 0.15 145) !important; }
+
+/* Tabs */
+.ed-tabs {
+  display: inline-flex;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  padding: 2px;
+}
+.ed-tab {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: oklch(0.78 0 0);
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+.ed-tab.active { background: var(--paper); color: var(--ink); }
+.ed-tab-count {
+  font-size: 0.62rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  font-style: normal;
+}
+.ed-tab.active .ed-tab-count { background: var(--accent); color: #fff; }
+
+/* Manage view */
+.ed-manage {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+.ed-manage-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  font-family: var(--serif-body);
+  color: var(--ink-3);
+}
+.ed-manage-empty p { font-size: 1.2rem; font-style: italic; }
+.ed-manage-empty-sub { font-size: 0.95rem !important; margin-top: 0.6rem; color: var(--ink-mute); }
+
+.ed-manage-list { list-style: none; }
+.ed-manage-item {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ed-manage-item:first-child { border-top: 2px solid var(--ink); }
+.ed-mi-body { flex: 1; min-width: 0; }
+.ed-mi-thumb {
+  width: 96px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+.ed-mi-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ed-mi-meta {
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+.ed-mi-cat { color: var(--accent); font-weight: 500; }
+.ed-mi-sep { color: var(--ink-mute); }
+.ed-mi-title {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+  text-wrap: balance;
+}
+.ed-mi-deck {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.98rem;
+  color: var(--ink-2);
+  line-height: 1.45;
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ed-mi-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.ed-manage-note {
+  margin-top: 2rem;
+  padding: 1.2rem 1.4rem;
+  background: var(--accent-soft);
+  border-radius: 12px;
+  font-family: var(--serif-body);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.ed-manage-note strong { color: var(--accent); }
+
+@media (max-width: 700px) {
+  .ed-manage-item { flex-direction: column; gap: 0.8rem; }
+  .ed-mi-actions { width: 100%; }
+  .ed-mi-actions .ed-btn { flex: 1; justify-content: center; }
+}
+
+.ed-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.8rem 1.5rem;
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s;
+  z-index: 60;
+}
+.ed-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Setup warning banner */
+.ed-setup-warn {
+  background: oklch(0.95 0.04 70);
+  border: 1px solid oklch(0.7 0.12 60);
+  border-left: 4px solid oklch(0.6 0.16 45);
+  border-radius: 12px;
+  padding: 1.2rem 1.3rem;
+  margin-bottom: 1.5rem;
+}
+.ed-setup-title {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: oklch(0.42 0.16 40);
+  margin-bottom: 0.5rem;
+}
+.ed-setup-sub, .ed-setup-manual {
+  font-family: var(--serif-body);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin-bottom: 0.9rem;
+}
+.ed-setup-step { margin-bottom: 1rem; }
+.ed-setup-step-t {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+.ed-setup-step-t span {
+  font-weight: 400;
+  font-style: italic;
+  font-family: var(--serif-body);
+  color: var(--ink-3);
+  font-size: 0.9rem;
+}
+.ed-setup-code {
+  display: block;
+  background: #1a1814;
+  color: #ede5cf;
+  font-family: 'JetBrains Mono', Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: all;
+  -webkit-user-select: all;
+}
+.ed-setup-foot {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--ink-3);
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 900px) {
+  .ed-wrap { grid-template-columns: 1fr; }
+  .ed-form-col { border-right: 0; border-bottom: 1px solid var(--rule); }
+}
+
+/* Login screen */
+.ed-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, oklch(0.62 0.13 60 / 0.10), transparent 60%),
+    var(--paper);
+}
+.ed-login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+  border-top: 4px solid var(--accent);
+  border-radius: 16px;
+  padding: 2.2rem;
+  box-shadow: 0 30px 60px -25px rgba(20,18,12,0.35);
+}
+.ed-login-card h1 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+.ed-login-card h1 em { font-style: italic; color: var(--accent); }
+.ed-login-card .ed-login-sub {
+  font-family: var(--serif-body);
+  font-style: italic;
+  color: var(--ink-3);
+  margin-bottom: 1.8rem;
+  line-height: 1.5;
+}
+.ed-login-card .ed-field { margin-bottom: 1.1rem; }
+.ed-login-btn {
+  width: 100%;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--paper);
+  margin-top: 0.5rem;
+}
+.ed-login-btn:hover { background: var(--accent); }
+.ed-login-err {
+  background: oklch(0.6 0.18 28 / 0.12);
+  border: 1px solid oklch(0.55 0.18 28);
+  color: oklch(0.42 0.16 28);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-family: var(--serif-body);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+.ed-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: oklch(0.78 0 0);
+}
+.ed-logout {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: oklch(0.78 0.10 50);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+.ed-logout:hover { color: #fff; }
+
+.ed-publish-ok {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.ed-publish-ok .ed-ok-mark {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: oklch(0.6 0.15 145);
+  color: #fff;
+  font-size: 1.8rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.2rem;
+  animation: pop 0.4s cubic-bezier(0.2,0.9,0.4,1.4);
+}
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+.ed-publish-ok h2 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: 2rem;
+  margin-bottom: 0.6rem;
+}
+.ed-publish-ok h2 em { font-style: italic; color: var(--accent); }
+.ed-publish-ok p {
+  font-family: var(--serif-body);
+  font-size: 1.05rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 30em;
+  margin: 0 auto 1.5rem;
+}
+
+
+/* ── Rich Text Toolbar ───────────────────────────────── */
+.ed-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+.ed-toolbar + textarea {
+  border-top: none !important;
+  border-radius: 0 0 8px 8px !important;
+}
+.ed-tb-btn {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  color: var(--ink-2);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  transition: all 0.15s;
+  min-width: 30px;
+  text-align: center;
+}
+.ed-tb-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.ed-tb-sep { width: 1px; height: 18px; background: var(--rule); margin: 0 0.2rem; }
+.ed-tb-hint {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.72rem;
+  color: var(--ink-mute);
+  margin-left: auto;
+}
+.ed-img-edit-btn {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  transition: all 0.2s;
+}
+.ed-img-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Image Editor Modal ──────────────────────────────── */
+.ie-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,13,10,0.75);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  animation: ov-in 0.2s ease both;
+}
+.ie-modal {
+  background: var(--paper);
+  border-radius: 16px;
+  max-width: 880px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 40px 80px -20px rgba(0,0,0,0.5);
+  animation: rd-in 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.ie-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+.ie-head h3 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+.ie-close {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  transition: all 0.2s;
+}
+.ie-close:hover { color: var(--accent); border-color: var(--accent); }
+.ie-body {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  overflow: hidden;
+  flex: 1;
+}
+.ie-canvas-wrap {
+  overflow: auto;
+  background: #1a1814;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: 1rem;
+}
+.ie-canvas {
+  max-width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.ie-controls {
+  padding: 1.2rem;
+  border-left: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+}
+.ie-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.ie-slider > span:first-child {
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ie-slider input[type=range] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.ie-val {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  text-align: right;
+}
+.ie-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ie-btn {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+  transition: all 0.2s;
+}
+.ie-btn:hover { border-color: var(--ink); color: var(--ink); }
+.ie-btn-reset { color: var(--ink-3); }
+.ie-apply {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.8rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 999px;
+  margin-top: auto;
+  transition: background 0.2s, transform 0.2s;
+}
+.ie-apply:hover:not(:disabled) { background: var(--accent); transform: scale(1.02); }
+.ie-apply:disabled { opacity: 0.5; cursor: wait; }
+
+/* ── AI Assistant Panel ──────────────────────────────── */
+.ai-toggle {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(120deg, oklch(0.42 0.16 280), oklch(0.52 0.18 250));
+  color: #fff;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 14px oklch(0.42 0.16 280 / 0.35);
+}
+.ai-toggle:hover { opacity: 0.9; transform: translateY(-1px); }
+.ai-toggle.active { background: linear-gradient(120deg, oklch(0.52 0.18 250), oklch(0.62 0.16 200)); }
+
+.ai-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 360px;
+  background: var(--paper);
+  border-left: 1px solid var(--rule);
+  box-shadow: -10px 0 40px rgba(0,0,0,0.15);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  animation: ai-slide 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  overflow: hidden;
+}
+@keyframes ai-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.ai-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, oklch(0.20 0.05 280 / 0.06), oklch(0.20 0.05 250 / 0.03));
+}
+.ai-panel-head span { color: var(--ink); }
+.ai-close {
+  font-size: 1.3rem;
+  color: var(--ink-3);
+  line-height: 1;
+  padding: 0.2rem 0.5rem;
+  transition: color 0.2s;
+}
+.ai-close:hover { color: var(--accent); }
+.ai-scroll { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
+.ai-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.ai-mode-btn {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink-2);
+  text-align: left;
+  transition: all 0.15s;
+}
+.ai-mode-btn:hover { border-color: oklch(0.52 0.18 250); color: oklch(0.32 0.18 260); }
+.ai-mode-btn.active {
+  background: oklch(0.52 0.18 250);
+  color: #fff;
+  border-color: oklch(0.52 0.18 250);
+}
+.ai-prompt {
+  width: 100%;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.98rem;
+  color: var(--ink);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+.ai-prompt:focus { border-color: oklch(0.52 0.18 250); }
+.ai-prompt::placeholder { color: var(--ink-mute); }
+.ai-run {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(120deg, oklch(0.42 0.16 280), oklch(0.52 0.18 250));
+  color: #fff;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px oklch(0.42 0.16 280 / 0.28);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.ai-run:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.ai-run:disabled { opacity: 0.5; cursor: wait; }
+.ai-result {
+  background: oklch(0.97 0.01 280 / 0.6);
+  border: 1px solid oklch(0.52 0.18 250 / 0.25);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ai-result-text {
+  padding: 1rem;
+  font-family: var(--serif-body);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.ai-result-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid oklch(0.52 0.18 250 / 0.20);
+  background: oklch(0.52 0.18 250 / 0.06);
+  flex-wrap: wrap;
+}
+.ai-insert-btn, .ai-copy-btn {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  transition: all 0.2s;
+}
+.ai-insert-btn {
+  background: oklch(0.42 0.16 280);
+  color: #fff;
+  flex: 1;
+}
+.ai-insert-btn:hover { background: oklch(0.52 0.18 250); }
+.ai-copy-btn {
+  background: var(--paper);
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+}
+.ai-copy-btn:hover { border-color: var(--ink); color: var(--ink); }
+.ai-key-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 0.5rem 0;
+}
+.ai-key-info {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.ai-key-input {
+  width: 100%;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: var(--ink);
+  outline: none;
+}
+.ai-key-input:focus { border-color: oklch(0.52 0.18 250); }
+.ai-key-link {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: oklch(0.52 0.18 250);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ai-key-save {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.75rem;
+  background: oklch(0.42 0.16 280);
+  color: #fff;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+.ai-key-save:hover:not(:disabled) { background: oklch(0.52 0.18 250); }
+.ai-key-save:disabled { opacity: 0.4; cursor: not-allowed; }
+.ai-key-change {
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding: 0.3rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: auto;
+}
+.ai-key-change:hover { color: var(--ink-3); }
+.ai-loading-dots::after {
+  content: '…';
+  animation: ai-dots 1.2s step-start infinite;
+}
+@keyframes ai-dots { 0%, 100% { content: '.'; } 33% { content: '..'; } 66% { content: '…'; } }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+const CATEGORIAS = [
+  "Israel e a Igreja",
+  "Profecia e Escatologia",
+  "Festas e Calendário Bíblico",
+  "Torah e Vida Hebraica",
+  "Oração e Intercessão",
+  "Formação Interior",
+  "Liderança Apostólica",
+  "Antissemitismo e Sionismo"
+];
+
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+// ─── RICH TEXT TOOLBAR ────────────────────────────────────────────────
+function RichTextToolbar({ taRef, value, onChange }) {
+  const wrap = (before, after) => {
+    const ta = taRef.current; if (!ta) return;
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const sel = value.slice(s, e) || 'texto';
+    const aft = after !== undefined ? after : before;
+    const nv = value.slice(0, s) + before + sel + aft + value.slice(e);
+    onChange(nv);
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(s + before.length, s + before.length + sel.length); }, 0);
+  };
+  const linePrefix = (prefix) => {
+    const ta = taRef.current; if (!ta) return;
+    const s = ta.selectionStart;
+    const ls = value.lastIndexOf('\n', s - 1) + 1;
+    const already = value.slice(ls).startsWith(prefix);
+    const nv = already
+      ? value.slice(0, ls) + value.slice(ls + prefix.length)
+      : value.slice(0, ls) + prefix + value.slice(ls);
+    onChange(nv);
+    const offset = already ? -prefix.length : prefix.length;
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(s + offset, s + offset); }, 0);
+  };
+  const BTNS = [
+    { ic: 'N', title: 'Negrito (**texto**)', fn: () => wrap('**'), style: { fontWeight: 700 } },
+    { ic: 'I', title: 'Itálico (*texto*)', fn: () => wrap('*'), style: { fontStyle: 'italic' } },
+    { sep: true },
+    { ic: 'H2', title: 'Subtítulo (## texto)', fn: () => linePrefix('## ') },
+    { ic: '"', title: 'Citação (> texto)', fn: () => linePrefix('> '), style: { fontFamily: 'serif', fontSize: '1.1em' } },
+    { sep: true },
+    { ic: '•', title: 'Lista com marcador', fn: () => linePrefix('- ') },
+    { ic: '1.', title: 'Lista numerada', fn: () => linePrefix('1. ') },
+    { sep: true },
+    { ic: '—', title: 'Linha divisória', fn: () => {
+      const ta = taRef.current; if (!ta) return;
+      const s = ta.selectionStart;
+      const nv = value.slice(0, s) + '\n\n---\n\n' + value.slice(s);
+      onChange(nv);
+      setTimeout(() => { ta.focus(); ta.setSelectionRange(s + 6, s + 6); }, 0);
+    }},
+    { ic: '🔗', title: 'Link', fn: () => {
+      const url = window.prompt('URL do link:'); if (!url) return;
+      const ta = taRef.current; if (!ta) return;
+      const s = ta.selectionStart, e = ta.selectionEnd;
+      const sel = value.slice(s, e) || 'texto do link';
+      const nv = value.slice(0, s) + '[' + sel + '](' + url + ')' + value.slice(e);
+      onChange(nv);
+      setTimeout(() => { ta.focus(); }, 0);
+    }},
+  ];
+  return (
+    <div className="ed-toolbar">
+      {BTNS.map((b, i) =>
+        b.sep
+          ? <span key={i} className="ed-tb-sep" />
+          : <button key={i} type="button" className="ed-tb-btn" title={b.title} style={b.style || {}} onClick={b.fn}>{b.ic}</button>
+      )}
+      <span className="ed-tb-hint">selecione o texto antes de formatar</span>
+    </div>
+  );
+}
+
+// ─── IMAGE EDITOR ─────────────────────────────────────────────────────
+function ImageEditor({ src, onSave, onClose, sb }) {
+  const [s, setS] = useState({ brightness: 0, contrast: 0, saturation: 0, rotate: 0, flipH: false });
+  const [saving, setSaving] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const canvasRef = useRef(null);
+
+  const cssFilter = `brightness(${1 + s.brightness / 100}) contrast(${1 + s.contrast / 100}) saturate(${1 + s.saturation / 100})`;
+
+  const wrapStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    flex: 1,
+    backgroundColor: '#1a1814',
+    minHeight: 240,
+    borderRadius: 0
+  };
+
+  const imgStyle = {
+    filter: cssFilter,
+    transform: `rotate(${s.rotate}deg) scaleX(${s.flipH ? -1 : 1})`,
+    maxWidth: '100%',
+    maxHeight: '55vh',
+    display: 'block',
+    transition: 'filter 0.12s, transform 0.18s',
+    borderRadius: 4
+  };
+
+  // Try to export via canvas (works for same-origin/Supabase images)
+  const exportViaCanvas = () => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = canvasRef.current || document.createElement('canvas');
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const maxW = 1400; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const rot90 = s.rotate === 90 || s.rotate === 270;
+      canvas.width  = rot90 ? h : w;
+      canvas.height = rot90 ? w : h;
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      if (s.flipH) ctx.scale(-1, 1);
+      ctx.rotate((s.rotate * Math.PI) / 180);
+      ctx.filter = cssFilter;
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92);
+    };
+    img.onerror = () => reject(new Error('CORS'));
+    img.src = src;
+  });
+
+  const apply = async () => {
+    // If nothing changed, just close
+    if (s.brightness === 0 && s.contrast === 0 && s.saturation === 0 && s.rotate === 0 && !s.flipH) {
+      onSave(src); return;
+    }
+    setSaving(true);
+    try {
+      const blob = await exportViaCanvas();
+      if (sb) {
+        const name = 'edited-' + Date.now() + '.jpg';
+        const { error } = await sb.storage.from('imagens').upload(name, blob, { contentType: 'image/jpeg', upsert: false });
+        if (!error) {
+          const { data } = sb.storage.from('imagens').getPublicUrl(name);
+          onSave(data.publicUrl); setSaving(false); return;
+        }
+      }
+      // Fallback: data URL
+      const canvas = document.createElement('canvas');
+      const img = new Image();
+      img.onload = () => {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const maxW = 1400; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.filter = cssFilter;
+        ctx.drawImage(img, 0, 0, w, h);
+        onSave(canvas.toDataURL('image/jpeg', 0.92));
+        setSaving(false);
+      };
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+    } catch (e) {
+      // CORS blocked — inform and save original
+      if (window.confirm('Esta imagem é de um domínio externo e não pode ser exportada com as edições (limitação do navegador).\n\nClique OK para salvar a imagem original, ou CANCELAR para fechar sem salvar.')) {
+        onSave(src);
+      }
+      setSaving(false);
+    }
+  };
+
+  const Slider = ({ label, k, min, max }) => (
+    <label className="ie-slider">
+      <span>{label}</span>
+      <input type="range" min={min} max={max} value={s[k]}
+        onChange={e => setS(p => ({ ...p, [k]: +e.target.value }))} />
+      <span className="ie-val">{s[k] > 0 ? '+' : ''}{s[k]}</span>
+    </label>
+  );
+
+  return (
+    <div className="ie-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="ie-modal" onClick={e => e.stopPropagation()}>
+        <div className="ie-head">
+          <h3>Editar imagem</h3>
+          <button onClick={onClose} className="ie-close">× fechar</button>
+        </div>
+        <div className="ie-body">
+          <div style={wrapStyle}>
+            {imgError ? (
+              <p style={{ color: '#ede5cf', fontFamily: 'sans-serif', fontSize: '0.9rem', textAlign: 'center', padding: '1rem' }}>
+                ⚠️ Não foi possível carregar a imagem.<br />Verifique se a URL é válida.
+              </p>
+            ) : (
+              <img
+                src={src}
+                alt="Editar"
+                style={imgStyle}
+                onError={() => setImgError(true)}
+              />
+            )}
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+          </div>
+          <div className="ie-controls">
+            <Slider label="Brilho"    k="brightness" min={-100} max={100} />
+            <Slider label="Contraste" k="contrast"   min={-100} max={100} />
+            <Slider label="Saturação" k="saturation" min={-100} max={100} />
+            <div className="ie-btns">
+              <button type="button" className="ie-btn" onClick={() => setS(p => ({ ...p, rotate: (p.rotate + 90) % 360 }))}>↻ Girar 90°</button>
+              <button type="button" className="ie-btn" onClick={() => setS(p => ({ ...p, flipH: !p.flipH }))}>⇄ Espelhar</button>
+              <button type="button" className="ie-btn ie-btn-reset" onClick={() => setS({ brightness: 0, contrast: 0, saturation: 0, rotate: 0, flipH: false })}>↺ Reset</button>
+            </div>
+            <button type="button" className="ie-apply" onClick={apply} disabled={saving}>
+              {saving ? 'Aplicando…' : '✓ Aplicar'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+  // ─── AI ASSISTANT PANEL ────────────────────────────────────────────────
+const AI_MODES = [
+  { id: 'expand',    label: '✦ Escrever post completo', placeholder: 'Descreva a ideia principal…' },
+  { id: 'improve',   label: '↑ Melhorar o texto atual', placeholder: 'Instrução extra (opcional)…' },
+  { id: 'title',     label: '≡ Sugerir 5 títulos',      placeholder: 'Instrução extra (opcional)…' },
+  { id: 'summary',   label: '◈ Gerar resumo automático',placeholder: 'Instrução extra (opcional)…' },
+  { id: 'translate', label: '⇌ Traduzir para PT-BR',    placeholder: 'Cole o texto para traduzir…' },
+];
+
+function AIPanel({ form, onInsert, onClose }) {
+  const [mode, setMode]       = useState('expand');
+  const [prompt, setPrompt]   = useState('');
+  const [result, setResult]   = useState('');
+  const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey]   = useState(() => localStorage.getItem('idi_ai_key') || '');
+  const [showKey, setShowKey] = useState(!localStorage.getItem('idi_ai_key'));
+  const [copied, setCopied]   = useState(false);
+
+  const buildSystemPrompt = () => {
+    const base = `Você é um editor especializado em reflexões cristãs sobre Israel, o judaísmo e missões urbanas. Tom: devocional, editorial, culto — mas acessível. Responda SOMENTE em português do Brasil.`;
+    const ctx  = `Título: ${form.titulo || '(sem título)'}\nCategoria: ${form.categoria}\nResumo: ${form.resumo || '(sem resumo)'}\nTexto atual:\n${form.conteudo || '(vazio)'}`;
+    const instructions = {
+      expand:    `${base}\n\nCom base no contexto abaixo, escreva um post completo com 5-7 parágrafos ricos e fluidos, sem subtítulos, separados por linha em branco. NÃO use markdown além de parágrafos simples.\n\n${ctx}\n\nInstrução adicional: ${prompt || 'nenhuma'}`,
+      improve:   `${base}\n\nMelhore o texto abaixo mantendo a voz e o tema. Retorne apenas o texto melhorado, parágrafos separados por linha em branco, sem comentários extras.\n\n${form.conteudo}\n\nInstrução: ${prompt || 'melhorar fluência e clareza'}`,
+      title:     `${base}\n\nSugira exatamente 5 títulos criativos e editoriais para um post sobre:\n${ctx}\n\nRetorne apenas os 5 títulos, um por linha, sem numeração.`,
+      summary:   `${base}\n\nEscreva um resumo editorial de 1 a 2 frases (máx. 40 palavras) para o post abaixo. Retorne apenas o resumo.\n\n${ctx}`,
+      translate: `Traduza o texto abaixo fielmente para o português do Brasil, mantendo o tom devocional. Retorne apenas o texto traduzido, parágrafos separados por linha em branco.\n\n${prompt || form.conteudo}`,
+    };
+    return instructions[mode];
+  };
+
+  const run = async () => {
+    if (!apiKey) { setShowKey(true); return; }
+    setLoading(true); setResult('');
+    try {
+      const res = await fetch('/.netlify/functions/ai-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: buildSystemPrompt(), apiKey })
+      });
+      if (!res.ok) { const e = await res.text(); throw new Error(e); }
+      const data = await res.json();
+      setResult(data.text || '(resposta vazia)');
+    } catch (e) {
+      setResult('⚠️ Erro: ' + (e.message || 'tente novamente'));
+    }
+    setLoading(false);
+  };
+
+  const saveKey = () => { localStorage.setItem('idi_ai_key', apiKey); setShowKey(false); };
+
+  const handleInsert = () => {
+    const lines = result.split('\n').filter(Boolean);
+    if (mode === 'title')   { onInsert('titulo', lines[0] || result); return; }
+    if (mode === 'summary') { onInsert('resumo', result); return; }
+    onInsert('conteudo', result);
+  };
+
+  const copyResult = async () => {
+    await navigator.clipboard.writeText(result).catch(() => {});
+    setCopied(true); setTimeout(() => setCopied(false), 1800);
+  };
+
+  const modeObj = AI_MODES.find(m => m.id === mode);
+
+  return (
+    <div className="ai-panel">
+      <div className="ai-panel-head">
+        <span>✦ Assistente IA</span>
+        <button onClick={onClose} className="ai-close" title="Fechar">×</button>
+      </div>
+
+      {showKey ? (
+        <div className="ai-scroll">
+          <div className="ai-key-section">
+            <p className="ai-key-info">
+              Para usar o assistente, insira sua chave da API Anthropic (Claude).
+              Ela fica salva só no seu navegador, nunca no servidor.
+            </p>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              placeholder="sk-ant-api03-…"
+              className="ai-key-input"
+              autoFocus
+            />
+            <a href="https://console.anthropic.com/account/keys" target="_blank" rel="noopener" className="ai-key-link">
+              Criar chave em console.anthropic.com ↗
+            </a>
+            <button onClick={saveKey} className="ai-key-save" disabled={!apiKey.startsWith('sk-')}>
+              Salvar e usar assistente
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="ai-scroll">
+          <div className="ai-modes">
+            {AI_MODES.map(m => (
+              <button
+                key={m.id}
+                className={`ai-mode-btn ${mode === m.id ? 'active' : ''}`}
+                onClick={() => { setMode(m.id); setResult(''); setPrompt(''); }}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          <textarea
+            className="ai-prompt"
+            rows="3"
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            placeholder={modeObj?.placeholder}
+          />
+
+          <button className="ai-run" onClick={run} disabled={loading}>
+            {loading ? <span className="ai-loading-dots">Gerando</span> : '✦ Gerar com IA'}
+          </button>
+
+          {result && (
+            <div className="ai-result">
+              <div className="ai-result-text">{result}</div>
+              <div className="ai-result-actions">
+                <button className="ai-insert-btn" onClick={handleInsert}>
+                  {mode === 'title' ? '↓ Usar como título' : mode === 'summary' ? '↓ Usar como resumo' : '↓ Usar como conteúdo'}
+                </button>
+                <button className="ai-copy-btn" onClick={copyResult}>
+                  {copied ? '✓' : '📋'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button className="ai-key-change" onClick={() => setShowKey(true)}>
+            🔑 Trocar chave API
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function slugify(str) {
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 60);
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${+d} de ${MESES[+m - 1]} de ${y}`;
+}
+
+function App() {
+  const today = new Date().toISOString().slice(0, 10);
+  const [form, setForm] = useState({
+    titulo: '', autor: 'Curadoria IDI · BTY', data: today,
+    categoria: CATEGORIAS[0], resumo: '', conteudo: '',
+    fonte_original: '', imagem: '', video_url: '', destaque: false
+  });
+  const [existing, setExisting] = useState(null);   // loaded articles.json array
+  const [loadStatus, setLoadStatus] = useState('loading');
+  const [dbPosts, setDbPosts] = useState([]);       // posts already in Supabase
+  const [imgColOk, setImgColOk] = useState(null);   // does the imagem column exist? null=checking
+  const [storageOk, setStorageOk] = useState(null); // does the imagens bucket exist?
+  const [showOutput, setShowOutput] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState('');
+
+  // Auth
+  const [session, setSession] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
+
+  // View + editing
+  const [view, setView] = useState('write');     // 'write' | 'manage'
+  const [editingPk, setEditingPk] = useState(null); // pk of post being edited (null = new)
+  const [busyPk, setBusyPk] = useState(null);    // pk being deleted
+  const [uploading, setUploading] = useState(false); // image upload in progress
+  const textareaRef   = useRef(null);
+  const [imgEditorOpen, setImgEditorOpen] = useState(false);
+  const [aiPanelOpen,   setAiPanelOpen]   = useState(false);
+
+  // Supabase client (singleton)
+  const sb = useMemo(() => {
+    const cfg = window.IDI_SUPABASE;
+    if (cfg && window.supabase) return window.supabase.createClient(cfg.url, cfg.anonKey);
+    return null;
+  }, []);
+
+  // Watch auth state
+  useEffect(() => {
+    if (!sb) { setAuthReady(true); return; }
+    sb.auth.getSession().then(({ data }) => { setSession(data.session); setAuthReady(true); });
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+  }, [sb]);
+
+  // Load existing articles.json (the embedded archive)
+  useEffect(() => {
+    fetch('data/articles.json')
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(arr => { setExisting(arr); setLoadStatus('ok'); })
+      .catch(() => setLoadStatus('fail'));
+  }, []);
+
+  // Load posts already in Supabase (for id calc + count)
+  useEffect(() => {
+    if (!sb) return;
+    sb.from('posts').select('*').order('data', { ascending: false })
+      .then(({ data }) => { if (data) setDbPosts(data); });
+  }, [sb, published]);
+
+  // Diagnostics: does the "imagem" column exist? does the "imagens" bucket exist?
+  useEffect(() => {
+    if (!sb) return;
+    sb.from('posts').select('imagem').limit(1).then(({ error }) => {
+      setImgColOk(!error);
+    });
+    sb.storage.from('imagens').list('', { limit: 1 }).then(({ error }) => {
+      setStorageOk(!error);
+    }).catch(() => setStorageOk(false));
+  }, [sb]);
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Compute next id from BOTH sources
+  const nextId = useMemo(() => {
+    const ids = [];
+    (existing || []).forEach(a => ids.push(parseInt(String(a.id).replace(/\D/g, ''), 10)));
+    dbPosts.forEach(a => ids.push(parseInt(String(a.id).replace(/\D/g, ''), 10)));
+    const valid = ids.filter(n => !isNaN(n));
+    const max = valid.length ? Math.max(...valid) : 0;
+    return String(max + 1).padStart(3, '0');
+  }, [existing, dbPosts]);
+
+  const totalPosts = (existing ? existing.length : 0) + dbPosts.length;
+
+  // All categories: the 8 defaults + any custom ones already used
+  const allCategorias = useMemo(() => {
+    const set = new Set(CATEGORIAS);
+    (existing || []).forEach(a => a.categoria && set.add(a.categoria));
+    dbPosts.forEach(a => a.categoria && set.add(a.categoria));
+    return [...set];
+  }, [existing, dbPosts]);
+
+  const buildPost = () => ({
+    id: nextId,
+    slug: slugify(form.titulo),
+    titulo: form.titulo.trim(),
+    titulo_original: '',
+    autor: form.autor.trim() || 'Curadoria IDI · BTY',
+    data: form.data,
+    categoria: form.categoria,
+    resumo: form.resumo.trim(),
+    conteudo: form.conteudo.trim(),
+    fonte_original: form.fonte_original.trim(),
+    imagem: form.imagem.trim(),
+    video_url: form.video_url.trim(),
+    destaque: !!form.destaque
+  });
+
+  const paragraphs = form.conteudo.split('\n\n').map(p => p.trim()).filter(Boolean);
+  const valid = form.titulo.trim() && form.resumo.trim() && form.conteudo.trim();
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 2600);
+  };
+
+  const copyJson = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2400);
+    }).catch(() => showToast('Não foi possível copiar — selecione o texto manualmente.'));
+  };
+
+  // ── Video helpers ──────────────────────────────────────────────────────
+  // Extract a clean YouTube embed URL from any youtube.com / youtu.be link
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+
+  const parseYouTube = (url) => {
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      // youtu.be/ID
+      if (u.hostname === 'youtu.be') {
+        const id = u.pathname.slice(1);
+        if (id) return `https://www.youtube.com/embed/${id}`;
+      }
+      // youtube.com/watch?v=ID
+      const v = u.searchParams.get('v');
+      if (v) return `https://www.youtube.com/embed/${v}`;
+      // youtube.com/embed/ID (already embed)
+      if (u.pathname.startsWith('/embed/')) return url;
+      // youtube.com/shorts/ID
+      const m = u.pathname.match(/\/shorts\/([^/?]+)/);
+      if (m) return `https://www.youtube.com/embed/${m[1]}`;
+    } catch (_) {}
+    return url; // pass through as-is for non-YT videos
+  };
+
+  const onVideoUrlChange = (raw) => {
+    const parsed = parseYouTube(raw.trim());
+    set('video_url', parsed || raw);
+  };
+
+  const uploadVideo = async (file) => {
+    if (!file) return;
+    if (!sb) { showToast('Banco indisponível para upload.'); return; }
+    if (!file.type.startsWith('video/')) { showToast('Selecione um arquivo de vídeo.'); return; }
+    if (file.size > 200 * 1024 * 1024) { showToast('Vídeo muito grande (máx. 200 MB).'); return; }
+    setUploadingVideo(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+      const name = `video-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await sb.storage.from('imagens').upload(name, file, {
+        cacheControl: '31536000', upsert: false
+      });
+      if (error) throw error;
+      const { data } = sb.storage.from('imagens').getPublicUrl(name);
+      set('video_url', data.publicUrl);
+      showToast('Vídeo enviado!');
+    } catch (e) {
+      showToast('Erro no upload do vídeo: ' + (e.message || e));
+    }
+    setUploadingVideo(false);
+  };
+
+  // Upload an image file to Supabase Storage and store its public URL
+  const uploadImage = async (file) => {
+    if (!file) return;
+    if (!sb) { showToast('Banco indisponível para upload.'); return; }
+    if (!file.type.startsWith('image/')) { showToast('Selecione um arquivo de imagem.'); return; }
+    if (file.size > 6 * 1024 * 1024) { showToast('Imagem muito grande (máx. 6 MB).'); return; }
+    setUploading(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const name = `post-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await sb.storage.from('imagens').upload(name, file, {
+        cacheControl: '31536000', upsert: false
+      });
+      if (error) throw error;
+      const { data } = sb.storage.from('imagens').getPublicUrl(name);
+      set('imagem', data.publicUrl);
+      showToast('Imagem enviada!');
+    } catch (e) {
+      const msg = (e.message || String(e)).toLowerCase();
+      if (msg.includes('bucket') || msg.includes('not found')) {
+        showToast('⚠️ Crie o bucket "imagens" (público) no Storage — passo 2.');
+      } else if (msg.includes('policy') || msg.includes('row-level') || msg.includes('permission') || msg.includes('unauthorized')) {
+        showToast('⚠️ Falta a política de upload no Storage — rode o SQL do passo 3.');
+      } else {
+        showToast('Erro no upload: ' + (e.message || e));
+      }
+    }
+    setUploading(false);
+  };
+
+  // Publish directly to Supabase (insert OR update when editing)
+  const publishNow = async () => {
+    if (!sb) { showToast('Banco indisponível.'); return; }
+    setPublishing(true);
+    const post = buildPost();
+    if (editingPk) {
+      const orig = dbPosts.find(p => p.pk === editingPk);
+      if (orig) post.id = orig.id;
+    }
+
+    // Helper: run insert/update, retrying without "imagem" if that column doesn't exist yet
+    const run = async (payload) => {
+      if (editingPk) return sb.from('posts').update(payload).eq('pk', editingPk);
+      return sb.from('posts').insert([payload]);
+    };
+
+    let { error } = await run(post);
+
+    // If the only problem is the missing "imagem" column, retry without it so the post still publishes
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+      const imagemMissing = msg.includes('imagem') ||
+        (msg.includes('column') && (msg.includes('does not exist') || msg.includes('schema cache')));
+      if (imagemMissing && 'imagem' in post) {
+        const { imagem, ...withoutImg } = post;
+        const retry = await run(withoutImg);
+        error = retry.error;
+        if (!error && imagem) {
+          showToast('Post publicado — mas a imagem não foi salva (falta a coluna "imagem" no banco).');
+        }
+      }
+    }
+
+    setPublishing(false);
+    if (error) {
+      showToast('Erro ao salvar: ' + error.message);
+      return;
+    }
+    setPublished(true);
+  };
+
+  // Load a Supabase post into the form to edit it
+  const editPost = (p) => {
+    setForm({
+      titulo: p.titulo || '', autor: p.autor || 'Curadoria IDI · BTY',
+      data: p.data || new Date().toISOString().slice(0, 10),
+      categoria: p.categoria || CATEGORIAS[0],
+      resumo: p.resumo || '', conteudo: p.conteudo || '',
+      fonte_original: p.fonte_original || '', imagem: p.imagem || '', video_url: p.video_url || '', destaque: !!p.destaque
+    });
+    setEditingPk(p.pk);
+    setView('write');
+    setPublished(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Delete a Supabase post
+  const deletePost = async (p) => {
+    if (!sb) return;
+    if (!window.confirm(`Apagar definitivamente o post “${p.titulo}”? Isso não pode ser desfeito.`)) return;
+    setBusyPk(p.pk);
+    const { error } = await sb.from('posts').delete().eq('pk', p.pk);
+    setBusyPk(null);
+    if (error) { showToast('Erro ao apagar: ' + error.message); return; }
+    setDbPosts(list => list.filter(x => x.pk !== p.pk));
+    showToast('Post apagado.');
+  };
+
+  const newPost = () => {
+    setForm({
+      titulo: '', autor: 'Curadoria IDI · BTY', data: new Date().toISOString().slice(0, 10),
+      categoria: CATEGORIAS[0], resumo: '', conteudo: '', fonte_original: '', imagem: '', video_url: '', destaque: false
+    });
+    setPublished(false);
+    setShowOutput(false);
+    setEditingPk(null);
+    setView('write');
+  };
+
+  const postJson = JSON.stringify(buildPost(), null, 2);
+
+  // ── LOGIN GATE ──────────────────────────────────────────────
+  if (!authReady) {
+    return <div className="ed-login"><div className="ed-login-card"><p style={{fontStyle:'italic',color:'var(--ink-3)'}}>Carregando…</p></div></div>;
+  }
+  if (sb && !session) {
+    return <LoginScreen sb={sb} />;
+  }
+
+  return (
+    <>
+      <div className="ed-top">
+        <div className="ed-brand">
+          <h1><em>IDI</em> · Editor de Posts</h1>
+          <span>Dia a Dia</span>
+        </div>
+        <div className="ed-top-actions">
+          <button
+            type="button"
+            className={`ai-toggle ${aiPanelOpen ? 'active' : ''}`}
+            onClick={() => setAiPanelOpen(v => !v)}
+          >
+            ✦ {aiPanelOpen ? 'Fechar IA' : 'Assistente IA'}
+          </button>
+          {session && (
+            <span className="ed-user-chip">
+              {session.user.email}
+              <button className="ed-logout" onClick={() => sb.auth.signOut()}>sair</button>
+            </span>
+          )}
+          <div className="ed-tabs">
+            <button
+              className={`ed-tab ${view === 'write' ? 'active' : ''}`}
+              onClick={() => setView('write')}
+            >
+              {editingPk ? 'Editando' : 'Escrever'}
+            </button>
+            <button
+              className={`ed-tab ${view === 'manage' ? 'active' : ''}`}
+              onClick={() => setView('manage')}
+            >
+              Meus posts {dbPosts.length > 0 && <span className="ed-tab-count">{dbPosts.length}</span>}
+            </button>
+          </div>
+          <a className="ed-btn ed-btn-ghost" href="index.html">← Ver o site</a>
+          {view === 'write' && (
+            <button
+              className="ed-btn ed-btn-primary"
+              disabled={!valid || publishing}
+              onClick={() => { setPublished(false); setShowOutput(true); }}
+            >
+              {publishing ? 'Salvando…' : (editingPk ? 'Salvar alterações →' : 'Publicar post →')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {view === 'manage' ? (
+        <ManagePosts
+          dbPosts={dbPosts}
+          existing={existing}
+          onEdit={editPost}
+          onDelete={deletePost}
+          busyPk={busyPk}
+          fmtDate={fmtDate}
+        />
+      ) : (
+      <div className="ed-wrap">
+        {/* FORM */}
+        <div className="ed-form-col">
+          {(imgColOk === false || storageOk === false) && (
+            <div className="ed-setup-warn">
+              <p className="ed-setup-title">⚠️ Configuração de imagens pendente</p>
+              <p className="ed-setup-sub">
+                Para as imagens aparecerem no site, rode o que falta abaixo no Supabase
+                (menu <strong>SQL Editor</strong> → <strong>New query</strong> → colar → <strong>Run</strong>):
+              </p>
+              {imgColOk === false && (
+                <div className="ed-setup-step">
+                  <p className="ed-setup-step-t">1. Criar a coluna da imagem <span>(faz o link de imagem funcionar)</span></p>
+                  <code className="ed-setup-code">alter table posts add column if not exists imagem text default '';</code>
+                </div>
+              )}
+              {storageOk === false && (
+                <div className="ed-setup-step">
+                  <p className="ed-setup-step-t">2. Criar o depósito de imagens <span>(faz o upload de arquivo funcionar)</span></p>
+                  <p className="ed-setup-manual">
+                    No menu <strong>Storage</strong> → <strong>New bucket</strong> → nome
+                    <strong> imagens</strong> → marque <strong>Public bucket</strong> → Create.
+                    Depois rode no SQL Editor:
+                  </p>
+                  <code className="ed-setup-code">{`create policy "upload imagens" on storage.objects for insert with check (bucket_id = 'imagens' and auth.role() = 'authenticated');
+create policy "ler imagens" on storage.objects for select using (bucket_id = 'imagens');`}</code>
+                </div>
+              )}
+              <p className="ed-setup-foot">Depois de rodar, recarregue esta página. O aviso some sozinho. ✓</p>
+            </div>
+          )}
+          <div className="ed-help">
+            {editingPk ? (
+              <span className="ed-status">
+                ✏️ <strong>Editando</strong> um post publicado. As alterações
+                entram no ar assim que você salvar.
+              </span>
+            ) : (
+              <span className="ed-status">
+                ✓ Conectado ao banco — <strong>{totalPosts} posts</strong> publicados.
+                O próximo será o <strong>nº {nextId}</strong>. Ao publicar,
+                ele aparece <strong>na hora</strong> no site.
+              </span>
+            )}
+          </div>
+
+          <p className="ed-section-label">{editingPk ? 'Edite o post' : 'Escreva o post'}</p>
+
+          <div className="ed-field">
+            <label>Título <span className="ed-hint">o título principal do post</span></label>
+            <input
+              type="text"
+              value={form.titulo}
+              placeholder="Ex.: A fidelidade de Deus a Israel"
+              onChange={e => set('titulo', e.target.value)}
+            />
+          </div>
+
+          <div className="ed-row-2">
+            <div className="ed-field">
+              <label>Autor / assinatura</label>
+              <input
+                type="text"
+                value={form.autor}
+                onChange={e => set('autor', e.target.value)}
+              />
+            </div>
+            <div className="ed-field">
+              <label>Data</label>
+              <input
+                type="date"
+                value={form.data}
+                onChange={e => set('data', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="ed-field">
+            <label>Categoria <span className="ed-hint">escolha uma ou digite uma nova</span></label>
+            <input
+              type="text"
+              list="cat-list"
+              value={form.categoria}
+              placeholder="Ex.: Israel e a Igreja"
+              onChange={e => set('categoria', e.target.value)}
+            />
+            <datalist id="cat-list">
+              {allCategorias.map(c => <option key={c} value={c} />)}
+            </datalist>
+          </div>
+
+          <div className="ed-field">
+            <label>Resumo <span className="ed-hint">1 a 2 frases de abertura (aparece nos cards)</span></label>
+            <textarea
+              rows="3"
+              value={form.resumo}
+              placeholder="Uma síntese que convida à leitura…"
+              onChange={e => set('resumo', e.target.value)}
+            />
+            <p className="ed-charcount">{form.resumo.length} caracteres</p>
+          </div>
+
+          <div className="ed-field">
+            <label>Conteúdo <span className="ed-hint">separe parágrafos com uma LINHA EM BRANCO</span></label>
+            <RichTextToolbar taRef={textareaRef} value={form.conteudo} onChange={v => set('conteudo', v)} />
+            <textarea
+              ref={textareaRef}
+              rows="14"
+              value={form.conteudo}
+              placeholder={"Primeiro parágrafo.\n\nSegundo parágrafo (deixe uma linha em branco entre eles).\n\nTerceiro parágrafo."}
+              onChange={e => set('conteudo', e.target.value)}
+            />
+            <p className="ed-charcount">{paragraphs.length} parágrafo(s) · {form.conteudo.split(/\s+/).filter(Boolean).length} palavras</p>
+          </div>
+
+          <div className="ed-field">
+            <label>Imagem de capa <span className="ed-hint">opcional · aparece no topo do post</span></label>
+            <div className="ed-img-field">
+              {form.imagem ? (
+                <div className="ed-img-preview">
+                  <img src={form.imagem} alt="capa" />
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button type="button" className="ed-img-edit-btn" onClick={() => setImgEditorOpen(true)}>
+                      ✏️ Editar imagem
+                    </button>
+                    <button type="button" className="ed-img-remove" onClick={() => set('imagem', '')}>
+                      ✕ remover
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className={`ed-img-drop ${uploading ? 'uploading' : ''}`}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    disabled={uploading}
+                    onChange={e => uploadImage(e.target.files[0])}
+                  />
+                  {uploading ? (
+                    <span className="ed-img-drop-txt">Enviando imagem…</span>
+                  ) : (
+                    <>
+                      <span className="ed-img-ic">⛰</span>
+                      <span className="ed-img-drop-txt">Clique para enviar uma imagem</span>
+                      <span className="ed-img-drop-sub">JPG, PNG ou WebP · até 6 MB</span>
+                    </>
+                  )}
+                </label>
+              )}
+              <div className="ed-img-or"><span>ou cole o link de uma imagem</span></div>
+              <input
+                type="url"
+                value={form.imagem}
+                placeholder="https://…/imagem.jpg"
+                onChange={e => set('imagem', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* VIDEO FIELD */}
+          <div className="ed-field">
+            <label>Vídeo <span className="ed-hint">YouTube, link direto ou upload · opcional</span></label>
+            <div className="ed-video-field">
+              {form.video_url ? (
+                <div className="ed-video-preview">
+                  {form.video_url.includes('youtube.com/embed') ? (
+                    <iframe
+                      src={form.video_url}
+                      title="Vídeo do post"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="ed-video-iframe"
+                    />
+                  ) : (
+                    <video src={form.video_url} controls className="ed-video-native" />
+                  )}
+                  <button type="button" className="ed-img-remove" onClick={() => set('video_url', '')}>
+                    ✕ remover vídeo
+                  </button>
+                </div>
+              ) : (
+                <label className={`ed-img-drop ${uploadingVideo ? 'uploading' : ''}`}>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    style={{ display: 'none' }}
+                    disabled={uploadingVideo}
+                    onChange={e => uploadVideo(e.target.files[0])}
+                  />
+                  {uploadingVideo ? (
+                    <span className="ed-img-drop-txt">Enviando vídeo…</span>
+                  ) : (
+                    <>
+                      <span className="ed-img-ic">▶</span>
+                      <span className="ed-img-drop-txt">Clique para enviar um vídeo</span>
+                      <span className="ed-img-drop-sub">MP4, MOV · até 200 MB</span>
+                    </>
+                  )}
+                </label>
+              )}
+              <div className="ed-img-or"><span>ou cole o link do YouTube (ou URL do vídeo)</span></div>
+              <input
+                type="url"
+                value={form.video_url && form.video_url.includes('youtube.com/embed') ? form.video_url.replace('youtube.com/embed/', 'youtube.com/watch?v=') : (form.video_url || '')}
+                placeholder="https://youtube.com/watch?v=… ou https://youtu.be/…"
+                onChange={e => onVideoUrlChange(e.target.value)}
+                className="ed-video-url-input"
+              />
+            </div>
+          </div>
+
+          <div className="ed-field">
+            <label>Fonte original <span className="ed-hint">link de origem (opcional)</span></label>            <input
+              type="url"
+              value={form.fonte_original}
+              placeholder="https://…"
+              onChange={e => set('fonte_original', e.target.value)}
+            />
+          </div>
+
+          <div className="ed-field">
+            <label className="ed-check">
+              <input type="checkbox" checked={form.destaque} onChange={e => set('destaque', e.target.checked)} />
+              <span>Marcar como <em>destaque</em> editorial</span>
+            </label>
+          </div>
+        </div>
+
+        {/* PREVIEW */}
+        <div className="ed-preview-col">
+          <p className="ed-preview-label">Pré-visualização</p>
+          {!valid ? (
+            <p className="pv-empty">Preencha título, resumo e conteúdo para ver o preview do post.</p>
+          ) : (
+            <article>
+              <span className="pv-kicker">{form.categoria}</span>
+              <h1 className="pv-title">{form.titulo}</h1>
+              {form.resumo && <p className="pv-deck">{form.resumo}</p>}
+              <div className="pv-meta">
+                <em>{form.autor || 'Curadoria IDI · BTY'}</em>
+                <span className="pv-sep">·</span>
+                <span>{fmtDate(form.data)}</span>
+                {form.destaque && <><span className="pv-sep">·</span><span>destaque</span></>}
+              </div>
+              {form.imagem && (
+                <figure className="pv-cover">
+                  <img src={form.imagem} alt="capa" />
+                </figure>
+              )}
+              {form.video_url && (
+                <figure className="pv-video">
+                  {form.video_url.includes('youtube.com/embed') ? (
+                    <iframe
+                      src={form.video_url}
+                      title="Vídeo"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="pv-video-iframe"
+                    />
+                  ) : (
+                    <video src={form.video_url} controls className="pv-video-native" />
+                  )}
+                </figure>
+              )}
+              <div className="pv-body">
+                {paragraphs.map((p, i) => (
+                  <p key={i} className={i === 0 ? 'pv-dropcap' : ''}>{p}</p>
+                ))}
+              </div>
+              {form.fonte_original && (
+                <p className="pv-source">
+                  Fonte original: <a href={form.fonte_original} target="_blank" rel="noopener">{form.fonte_original}</a>
+                </p>
+              )}
+            </article>
+          )}
+        </div>
+      </div>
+      )}
+
+      {/* PUBLISH MODAL */}
+      {showOutput && (
+        <div className="ed-overlay" onClick={e => { if (e.target.classList.contains('ed-overlay') && !publishing) setShowOutput(false); }}>
+          <div className="ed-modal">
+            {published ? (
+              <div className="ed-publish-ok">
+                <div className="ed-ok-mark">✓</div>
+                <h2>{editingPk ? <>Alterações <em>salvas!</em></> : <>Post <em>publicado!</em></>}</h2>
+                <p>
+                  {editingPk
+                    ? 'O post foi atualizado e já está no ar. Abra o site e atualize a página para ver.'
+                    : 'Seu post já está no ar. Abra o site e atualize a página para vê-lo no topo do arquivo.'}
+                </p>
+                <div className="ed-modal-foot" style={{ borderTop: 0, justifyContent: 'center' }}>
+                  <a className="ed-btn ed-btn-outline" href="index.html" target="_blank">Ver no site ↗</a>
+                  <button className="ed-btn ed-btn-dark" onClick={newPost}>Escrever outro post</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="ed-modal-head">
+                  <h2>{editingPk ? <>Salvar <em>alterações?</em></> : <>Publicar <em>agora?</em></>}</h2>
+                  <p>Confira o resumo. Ao confirmar, {editingPk ? 'as alterações vão' : 'o post vai'} direto para o site — sem baixar nada.</p>
+                </div>
+                <div className="ed-modal-body">
+                  <ol className="ed-steps">
+                    <li><strong>{form.titulo}</strong></li>
+                    <li>{form.categoria} · {fmtDate(form.data)} · {form.autor}</li>
+                    <li>{paragraphs.length} parágrafo(s){form.destaque ? ' · marcado como destaque' : ''}</li>
+                  </ol>
+                  <details>
+                    <summary style={{ cursor: 'pointer', fontFamily: 'var(--sans)', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: '0.8rem' }}>
+                      ver dados técnicos (JSON)
+                    </summary>
+                    <div className="ed-code">{postJson}</div>
+                  </details>
+                </div>
+                <div className="ed-modal-foot">
+                  <button className="ed-btn ed-btn-outline" onClick={() => setShowOutput(false)} disabled={publishing}>Cancelar</button>
+                  <button
+                    className={`ed-btn ed-btn-outline ${copied ? 'ed-copied' : ''}`}
+                    onClick={() => copyJson(postJson)}
+                  >
+                    {copied ? '✓ Copiado' : '📋 Copiar JSON'}
+                  </button>
+                  <button className="ed-btn ed-btn-dark" onClick={publishNow} disabled={publishing}>
+                    {publishing ? 'Salvando…' : (editingPk ? '✓ Salvar alterações' : '✓ Publicar no site')}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={`ed-toast ${toast ? 'show' : ''}`}>{toast}</div>
+    </>
+  );
+}
+
+// ─── MANAGE POSTS (edit / delete) ──────────────────────────────────────
+function ManagePosts({ dbPosts, existing, onEdit, onDelete, busyPk, fmtDate }) {
+  return (
+    <div className="ed-manage">
+      <p className="ed-section-label">Posts publicados pelo editor</p>
+
+      {dbPosts.length === 0 ? (
+        <div className="ed-manage-empty">
+          <p>Você ainda não publicou nenhum post por aqui.</p>
+          <p className="ed-manage-empty-sub">
+            Os posts criados no editor aparecem nesta lista para você editar ou apagar.
+          </p>
+        </div>
+      ) : (
+        <ul className="ed-manage-list">
+          {dbPosts.map(p => (
+            <li key={p.pk} className="ed-manage-item">
+              {p.imagem && (
+                <div className="ed-mi-thumb"><img src={p.imagem} alt="" /></div>
+              )}
+              <div className="ed-mi-body">
+                <div className="ed-mi-meta">
+                  <span className="ed-mi-cat">{p.categoria}</span>
+                  <span className="ed-mi-sep">·</span>
+                  <span>{fmtDate(p.data)}</span>
+                  <span className="ed-mi-sep">·</span>
+                  <span>{p.autor}</span>
+                </div>
+                <h3 className="ed-mi-title">{p.titulo}</h3>
+                {p.resumo && <p className="ed-mi-deck">{p.resumo}</p>}
+              </div>
+              <div className="ed-mi-actions">
+                <button className="ed-btn ed-btn-outline" onClick={() => onEdit(p)}>✏️ Editar</button>
+                <button
+                  className="ed-btn ed-btn-danger"
+                  onClick={() => onDelete(p)}
+                  disabled={busyPk === p.pk}
+                >
+                  {busyPk === p.pk ? 'Apagando…' : '🗑 Apagar'}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="ed-manage-note">
+        <p>
+          <strong>Sobre o arquivo histórico:</strong> os {existing ? existing.length : 78} textos
+          originais (Tikkun, Derek Prince, etc.) ficam guardados no próprio site e não aparecem
+          aqui. Apenas os posts que você cria pelo editor podem ser editados ou apagados nesta tela.
+        </p>
+      </div>
+      {/* IMAGE EDITOR MODAL */}
+      {imgEditorOpen && form.imagem && (
+        <ImageEditor
+          src={form.imagem}
+          sb={sb}
+          onSave={(url) => { set('imagem', url); setImgEditorOpen(false); }}
+          onClose={() => setImgEditorOpen(false)}
+        />
+      )}
+
+      {/* AI ASSISTANT PANEL */}
+      {aiPanelOpen && (
+        <AIPanel
+          form={form}
+          onInsert={(field, text) => { set(field, text); setAiPanelOpen(false); }}
+          onClose={() => setAiPanelOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── LOGIN SCREEN ──────────────────────────────────────────────────────
+function LoginScreen({ sb }) {
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setErr('');
+    setBusy(true);
+    const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pass });
+    setBusy(false);
+    if (error) setErr('Email ou senha incorretos. Tente novamente.');
+  };
+
+  return (
+    <div className="ed-login">
+      <form className="ed-login-card" onSubmit={submit}>
+        <h1><em>IDI</em> · Editor</h1>
+        <p className="ed-login-sub">Entre com o login que você criou no painel para escrever e publicar posts.</p>
+        {err && <div className="ed-login-err">{err}</div>}
+        <div className="ed-field">
+          <label>Email</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" autoFocus required />
+        </div>
+        <div className="ed-field">
+          <label>Senha</label>
+          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="••••••••" required />
+        </div>
+        <button type="submit" className="ed-btn ed-login-btn" disabled={busy}>
+          {busy ? 'Entrando…' : 'Entrar →'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
