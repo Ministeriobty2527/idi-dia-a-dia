@@ -989,228 +989,6 @@ a { color: inherit; }
 .ie-apply:hover:not(:disabled) { background: var(--accent); transform: scale(1.02); }
 .ie-apply:disabled { opacity: 0.5; cursor: wait; }
 
-/* ── AI Assistant Panel ──────────────────────────────── */
-.ai-toggle {
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(120deg, oklch(0.42 0.16 280), oklch(0.52 0.18 250));
-  color: #fff;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: opacity 0.2s, transform 0.2s;
-  box-shadow: 0 4px 14px oklch(0.42 0.16 280 / 0.35);
-}
-.ai-toggle:hover { opacity: 0.9; transform: translateY(-1px); }
-.ai-toggle.active { background: linear-gradient(120deg, oklch(0.52 0.18 250), oklch(0.62 0.16 200)); }
-
-.ai-panel {
-  position: fixed;
-  top: 0; right: 0; bottom: 0;
-  width: 360px;
-  background: var(--paper);
-  border-left: 1px solid var(--rule);
-  box-shadow: -10px 0 40px rgba(0,0,0,0.15);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  animation: ai-slide 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-  overflow: hidden;
-}
-@keyframes ai-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
-.ai-panel-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.2rem;
-  border-bottom: 1px solid var(--rule);
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, oklch(0.20 0.05 280 / 0.06), oklch(0.20 0.05 250 / 0.03));
-}
-.ai-panel-head span { color: var(--ink); }
-.ai-close {
-  font-size: 1.3rem;
-  color: var(--ink-3);
-  line-height: 1;
-  padding: 0.2rem 0.5rem;
-  transition: color 0.2s;
-}
-.ai-close:hover { color: var(--accent); }
-.ai-scroll { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
-.ai-modes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.ai-mode-btn {
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 500;
-  padding: 0.55rem 0.85rem;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  background: var(--paper);
-  color: var(--ink-2);
-  text-align: left;
-  transition: all 0.15s;
-}
-.ai-mode-btn:hover { border-color: oklch(0.52 0.18 250); color: oklch(0.32 0.18 260); }
-.ai-mode-btn.active {
-  background: oklch(0.52 0.18 250);
-  color: #fff;
-  border-color: oklch(0.52 0.18 250);
-}
-.ai-prompt {
-  width: 100%;
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 0.75rem 0.9rem;
-  font-family: var(--serif-body);
-  font-style: italic;
-  font-size: 0.98rem;
-  color: var(--ink);
-  outline: none;
-  resize: vertical;
-  transition: border-color 0.2s;
-}
-.ai-prompt:focus { border-color: oklch(0.52 0.18 250); }
-.ai-prompt::placeholder { color: var(--ink-mute); }
-.ai-run {
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.8rem 1.2rem;
-  background: linear-gradient(120deg, oklch(0.42 0.16 280), oklch(0.52 0.18 250));
-  color: #fff;
-  border-radius: 999px;
-  box-shadow: 0 4px 14px oklch(0.42 0.16 280 / 0.28);
-  transition: opacity 0.2s, transform 0.2s;
-}
-.ai-run:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-.ai-run:disabled { opacity: 0.5; cursor: wait; }
-.ai-result {
-  background: oklch(0.97 0.01 280 / 0.6);
-  border: 1px solid oklch(0.52 0.18 250 / 0.25);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.ai-result-text {
-  padding: 1rem;
-  font-family: var(--serif-body);
-  font-size: 0.98rem;
-  line-height: 1.6;
-  color: var(--ink);
-  white-space: pre-wrap;
-  max-height: 300px;
-  overflow-y: auto;
-}
-.ai-result-actions {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-top: 1px solid oklch(0.52 0.18 250 / 0.20);
-  background: oklch(0.52 0.18 250 / 0.06);
-  flex-wrap: wrap;
-}
-.ai-insert-btn, .ai-copy-btn {
-  font-family: var(--sans);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  transition: all 0.2s;
-}
-.ai-insert-btn {
-  background: oklch(0.42 0.16 280);
-  color: #fff;
-  flex: 1;
-}
-.ai-insert-btn:hover { background: oklch(0.52 0.18 250); }
-.ai-copy-btn {
-  background: var(--paper);
-  color: var(--ink-2);
-  border: 1px solid var(--rule);
-}
-.ai-copy-btn:hover { border-color: var(--ink); color: var(--ink); }
-.ai-key-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  padding: 0.5rem 0;
-}
-.ai-key-info {
-  font-family: var(--serif-body);
-  font-style: italic;
-  font-size: 0.95rem;
-  color: var(--ink-2);
-  line-height: 1.5;
-}
-.ai-key-input {
-  width: 100%;
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 0.7rem 0.9rem;
-  font-family: monospace;
-  font-size: 0.82rem;
-  color: var(--ink);
-  outline: none;
-}
-.ai-key-input:focus { border-color: oklch(0.52 0.18 250); }
-.ai-key-link {
-  font-family: var(--sans);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  color: oklch(0.52 0.18 250);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.ai-key-save {
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.75rem;
-  background: oklch(0.42 0.16 280);
-  color: #fff;
-  border-radius: 999px;
-  transition: background 0.2s;
-}
-.ai-key-save:hover:not(:disabled) { background: oklch(0.52 0.18 250); }
-.ai-key-save:disabled { opacity: 0.4; cursor: not-allowed; }
-.ai-key-change {
-  font-family: var(--sans);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  padding: 0.3rem 0;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  margin-top: auto;
-}
-.ai-key-change:hover { color: var(--ink-3); }
-.ai-loading-dots::after {
-  content: '…';
-  animation: ai-dots 1.2s step-start infinite;
-}
-@keyframes ai-dots { 0%, 100% { content: '.'; } 33% { content: '..'; } 66% { content: '…'; } }
-
 </style>
 </head>
 <body>
@@ -1242,6 +1020,16 @@ const CATEGORIAS = [
 ];
 
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+// ─── SLUGIFY ──────────────────────────────────────────────────────────────
+const slugify = (str) => (str || '')
+  .toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+  .replace(/[^a-z0-9\s-]/g, '')
+  .trim()
+  .replace(/\s+/g, '-')
+  .replace(/-+/g, '-')
+  .slice(0, 80);
 
 // ─── RICH TEXT TOOLBAR ────────────────────────────────────────────────
 function RichTextToolbar({ taRef, value, onChange }) {
@@ -1310,94 +1098,79 @@ function ImageEditor({ src, onSave, onClose, sb }) {
   const [s, setS] = useState({ brightness: 0, contrast: 0, saturation: 0, rotate: 0, flipH: false });
   const [saving, setSaving] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const canvasRef = useRef(null);
+  const [corsOk, setCorsOk] = useState(null); // null=unknown, true, false
+
+  const isSupabase = src && src.includes('supabase.co');
 
   const cssFilter = `brightness(${1 + s.brightness / 100}) contrast(${1 + s.contrast / 100}) saturate(${1 + s.saturation / 100})`;
-
-  const wrapStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    flex: 1,
-    backgroundColor: '#1a1814',
-    minHeight: 240,
-    borderRadius: 0
-  };
-
   const imgStyle = {
     filter: cssFilter,
     transform: `rotate(${s.rotate}deg) scaleX(${s.flipH ? -1 : 1})`,
-    maxWidth: '100%',
-    maxHeight: '55vh',
-    display: 'block',
-    transition: 'filter 0.12s, transform 0.18s',
-    borderRadius: 4
+    maxWidth: '100%', maxHeight: '52vh',
+    display: 'block', transition: 'filter 0.12s, transform 0.18s', borderRadius: 4
   };
 
-  // Try to export via canvas (works for same-origin/Supabase images)
-  const exportViaCanvas = () => new Promise((resolve, reject) => {
+  // Test CORS on mount
+  useEffect(() => {
+    if (!src) return;
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = canvasRef.current || document.createElement('canvas');
-      let w = img.naturalWidth, h = img.naturalHeight;
-      const maxW = 1400; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-      const rot90 = s.rotate === 90 || s.rotate === 270;
-      canvas.width  = rot90 ? h : w;
-      canvas.height = rot90 ? w : h;
-      const ctx = canvas.getContext('2d');
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      if (s.flipH) ctx.scale(-1, 1);
-      ctx.rotate((s.rotate * Math.PI) / 180);
-      ctx.filter = cssFilter;
-      ctx.drawImage(img, -w / 2, -h / 2, w, h);
-      ctx.restore();
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92);
-    };
-    img.onerror = () => reject(new Error('CORS'));
-    img.src = src;
-  });
+    img.onload = () => setCorsOk(true);
+    img.onerror = () => setCorsOk(false);
+    img.src = src + (src.includes('?') ? '&' : '?') + '_t=' + Date.now();
+  }, [src]);
 
   const apply = async () => {
-    // If nothing changed, just close
-    if (s.brightness === 0 && s.contrast === 0 && s.saturation === 0 && s.rotate === 0 && !s.flipH) {
-      onSave(src); return;
-    }
     setSaving(true);
-    try {
-      const blob = await exportViaCanvas();
-      if (sb) {
-        const name = 'edited-' + Date.now() + '.jpg';
-        const { error } = await sb.storage.from('imagens').upload(name, blob, { contentType: 'image/jpeg', upsert: false });
-        if (!error) {
-          const { data } = sb.storage.from('imagens').getPublicUrl(name);
-          onSave(data.publicUrl); setSaving(false); return;
+    const noEdits = s.brightness === 0 && s.contrast === 0 && s.saturation === 0 && s.rotate === 0 && !s.flipH;
+    if (noEdits) { onSave(src); setSaving(false); return; }
+
+    if (corsOk) {
+      // Canvas export (Supabase images, or any CORS-friendly source)
+      try {
+        const blob = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.naturalWidth, h = img.naturalHeight;
+            const maxW = 1400; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+            const rot90 = s.rotate === 90 || s.rotate === 270;
+            canvas.width = rot90 ? h : w;
+            canvas.height = rot90 ? w : h;
+            const ctx = canvas.getContext('2d');
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            if (s.flipH) ctx.scale(-1, 1);
+            ctx.rotate((s.rotate * Math.PI) / 180);
+            ctx.filter = cssFilter;
+            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+            ctx.restore();
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob')), 'image/jpeg', 0.92);
+          };
+          img.onerror = reject;
+          img.src = src + (src.includes('?') ? '&' : '?') + '_t=' + Date.now();
+        });
+        if (sb) {
+          const name = 'edited-' + Date.now() + '.jpg';
+          const { error, data: uploadData } = await sb.storage.from('imagens').upload(name, blob, { contentType: 'image/jpeg', upsert: false });
+          if (!error) {
+            const { data } = sb.storage.from('imagens').getPublicUrl(name);
+            onSave(data.publicUrl); setSaving(false); return;
+          }
         }
+        // No Supabase storage: use data URL
+        const reader = new FileReader();
+        reader.onload = e => { onSave(e.target.result); setSaving(false); };
+        reader.readAsDataURL(blob);
+        return;
+      } catch (e) {
+        console.warn('Canvas export failed:', e);
       }
-      // Fallback: data URL
-      const canvas = document.createElement('canvas');
-      const img = new Image();
-      img.onload = () => {
-        let w = img.naturalWidth, h = img.naturalHeight;
-        const maxW = 1400; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.filter = cssFilter;
-        ctx.drawImage(img, 0, 0, w, h);
-        onSave(canvas.toDataURL('image/jpeg', 0.92));
-        setSaving(false);
-      };
-      img.crossOrigin = 'anonymous';
-      img.src = src;
-    } catch (e) {
-      // CORS blocked — inform and save original
-      if (window.confirm('Esta imagem é de um domínio externo e não pode ser exportada com as edições (limitação do navegador).\n\nClique OK para salvar a imagem original, ou CANCELAR para fechar sem salvar.')) {
-        onSave(src);
-      }
-      setSaving(false);
     }
+    // CORS blocked — save original URL (edits visible in preview only)
+    onSave(src);
+    setSaving(false);
   };
 
   const Slider = ({ label, k, min, max }) => (
@@ -1417,32 +1190,31 @@ function ImageEditor({ src, onSave, onClose, sb }) {
           <button onClick={onClose} className="ie-close">× fechar</button>
         </div>
         <div className="ie-body">
-          <div style={wrapStyle}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', flex:1, backgroundColor:'#1a1814', minHeight:220, borderRadius:0, overflow:'hidden' }}>
             {imgError ? (
-              <p style={{ color: '#ede5cf', fontFamily: 'sans-serif', fontSize: '0.9rem', textAlign: 'center', padding: '1rem' }}>
-                ⚠️ Não foi possível carregar a imagem.<br />Verifique se a URL é válida.
+              <p style={{ color:'#ede5cf', fontFamily:'sans-serif', fontSize:'0.9rem', textAlign:'center', padding:'1.5rem' }}>
+                ⚠️ Imagem não pôde ser carregada.<br />Verifique a URL ou faça upload do arquivo.
               </p>
             ) : (
-              <img
-                src={src}
-                alt="Editar"
-                style={imgStyle}
-                onError={() => setImgError(true)}
-              />
+              <img src={src} alt="Editar" style={imgStyle} onError={() => setImgError(true)} />
             )}
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
           </div>
           <div className="ie-controls">
+            {corsOk === false && (
+              <div style={{ background:'oklch(0.97 0.02 50)', border:'1px solid oklch(0.88 0.06 50)', borderRadius:8, padding:'0.7rem 0.9rem', fontSize:'0.82rem', fontFamily:'sans-serif', color:'oklch(0.42 0.08 40)', lineHeight:1.4 }}>
+                ⚠️ <strong>Imagem externa</strong> — a pré-visualização funciona, mas as edições não podem ser exportadas. Para editar de verdade, use o campo "Imagem de capa" para fazer upload do arquivo direto.
+              </div>
+            )}
             <Slider label="Brilho"    k="brightness" min={-100} max={100} />
             <Slider label="Contraste" k="contrast"   min={-100} max={100} />
             <Slider label="Saturação" k="saturation" min={-100} max={100} />
             <div className="ie-btns">
               <button type="button" className="ie-btn" onClick={() => setS(p => ({ ...p, rotate: (p.rotate + 90) % 360 }))}>↻ Girar 90°</button>
               <button type="button" className="ie-btn" onClick={() => setS(p => ({ ...p, flipH: !p.flipH }))}>⇄ Espelhar</button>
-              <button type="button" className="ie-btn ie-btn-reset" onClick={() => setS({ brightness: 0, contrast: 0, saturation: 0, rotate: 0, flipH: false })}>↺ Reset</button>
+              <button type="button" className="ie-btn ie-btn-reset" onClick={() => setS({ brightness:0, contrast:0, saturation:0, rotate:0, flipH:false })}>↺ Reset</button>
             </div>
-            <button type="button" className="ie-apply" onClick={apply} disabled={saving}>
-              {saving ? 'Aplicando…' : '✓ Aplicar'}
+            <button type="button" className="ie-apply" onClick={apply} disabled={saving || imgError}>
+              {saving ? 'Salvando…' : corsOk === false ? '✓ Usar imagem original' : '✓ Aplicar e salvar'}
             </button>
           </div>
         </div>
@@ -1450,160 +1222,6 @@ function ImageEditor({ src, onSave, onClose, sb }) {
     </div>
   );
 }
-
-  // ─── OFFLINE WRITING ASSISTANT ────────────────────────────────────────
-const CATS = {
-  'Israel e a Igreja':        'A Igreja e Israel não são rivais na história da redenção — são parceiras num único plano eterno. Ignorar essa dimensão é perder metade do Evangelho.',
-  'Profecia e Escatologia':   'A profecia não é um mapa do futuro para satisfazer a curiosidade, mas uma bússola para o presente. Cada palavra profética nos convoca a uma resposta agora.',
-  'Torah e Vida Hebraica':    'A Torah não foi abolida — foi cumprida. E aquilo que foi cumprido em Yeshua continua sendo luz para os nossos pés, lâmpada para o nosso caminho.',
-  'Oração e Intercessão':     'A intercessão é o trabalho mais invisível e mais poderoso do Reino. Nela, o céu e a terra se encontram, e histórias são escritas antes mesmo de serem vividas.',
-  'Formação Interior':        'Nenhum ministério cresce além do caráter de quem o carrega. A formação interior não é um tema periférico — é o fundamento de tudo que dura.',
-  'Festas e Calendário Bíblico': 'O calendário bíblico não é uma questão de tradição — é uma questão de identidade. As festas são sombras proféticas das coisas que já vieram e das que ainda virão.',
-  'Liderança Apostólica':     'Liderança apostólica não é um título — é uma postura. É a disposição de ser o primeiro a obedecer, o último a cobrar, e o único a ficar quando todos saem.',
-  'Antissemitismo e Sionismo':'O antissemitismo não é apenas um problema político ou histórico — é um sintoma espiritual. Toda vez que ele ressurge, a Igreja é chamada a decidir de que lado está.',
-};
-
-function generateOffline(mode, form, extra) {
-  const titulo = (form.titulo || 'este tema').trim();
-  const cat    = form.categoria || 'Israel e a Igreja';
-  const corpo  = form.conteudo || '';
-  const catFrase = CATS[cat] || '';
-
-  if (mode === 'expand') {
-    return [
-      `${corpo ? corpo + '\n\n' : ''}A palavra de Deus não retorna vazia. Quando nos debruçamos sobre ${titulo}, somos confrontados com uma verdade que transcende o tempo e os sistemas religiosos — uma verdade ao mesmo tempo profundamente hebraica e radicalmente apostólica.`,
-      catFrase,
-      `[Desenvolva aqui o ponto central sobre: ${titulo}${extra ? ' — ' + extra : ''}]`,
-      `Quando os apóstolos proclamaram o evangelho do Reino, não separaram a mensagem de Israel da missão às nações. As raízes e os frutos fazem parte da mesma oliveira. Redescobrir isso não é arqueologia espiritual — é urgência profética.`,
-      `Que essa reflexão não fique apenas na mente. Que ela desça ao coração, mova as mãos e redirecione os pés. Porque em última análise, tudo o que aprendemos das Escrituras nos convida a uma resposta — e essa resposta começa hoje.`
-    ].join('\n\n');
-  }
-
-  if (mode === 'improve') {
-    if (!corpo) return 'Escreva o conteúdo do post primeiro para que eu possa sugerir melhorias.';
-    const paras = corpo.split('\n\n').map(p => p.trim()).filter(Boolean);
-    const melhorados = paras.map((p, i) => {
-      if (i === 0 && p.length < 80) return p + ' Esta é uma verdade que o corpo de Yeshua precisa revisitar com frequência.';
-      return p;
-    });
-    return '[Versão revisada — ajuste conforme necessário:]\n\n' + melhorados.join('\n\n');
-  }
-
-  if (mode === 'title') {
-    const base = titulo.replace(/[?!.:]/g, '').trim();
-    return [
-      `${base}: o que as Escrituras revelam`,
-      `A profundidade de ${base} na tradição hebraica`,
-      `${base} — uma reflexão para o corpo de Yeshua`,
-      `Por que ${base} importa para a Igreja hoje`,
-      `${base}: da Galileia ao Brasil`,
-    ].join('\n');
-  }
-
-  if (mode === 'summary') {
-    const src = corpo || form.resumo || titulo;
-    const frases = src.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 30);
-    if (frases.length >= 2) return frases.slice(0, 2).join(' ').trim();
-    if (frases.length === 1) return frases[0].trim();
-    return `Uma reflexão sobre ${titulo} — para o corpo de Yeshua em língua portuguesa, no contexto de ${cat}.`;
-  }
-
-  if (mode === 'translate') {
-    const src = extra || corpo;
-    if (!src) return 'Cole o texto a traduzir no campo de instrução acima.';
-    return `[Sugestão: cole o texto abaixo no DeepL (deepl.com) para tradução de qualidade, depois volte aqui para revisar o estilo:]\n\n${src}\n\n[Dica: após traduzir, use o modo "Melhorar texto" para ajustar ao estilo editorial IDI.]`;
-  }
-
-  return 'Selecione um modo acima.';
-}
-
-function AIPanel({ form, onInsert, onClose }) {
-  const [mode, setMode]     = useState('expand');
-  const [prompt, setPrompt] = useState('');
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const MODES = [
-    { id: 'expand',    label: '✦ Expandir em post completo', ph: 'Instrução extra (opcional)…'     },
-    { id: 'improve',   label: '↑ Melhorar o texto',          ph: 'Instrução extra (opcional)…'     },
-    { id: 'title',     label: '≡ Sugerir 5 títulos',         ph: 'Instrução extra (opcional)…'     },
-    { id: 'summary',   label: '◈ Gerar resumo',              ph: 'Instrução extra (opcional)…'     },
-    { id: 'translate', label: '⇌ Guia de tradução PT-BR',    ph: 'Cole o texto a traduzir aqui…'   },
-  ];
-
-  const run = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setResult(generateOffline(mode, form, prompt));
-      setLoading(false);
-    }, 350);
-  };
-
-  const handleInsert = () => {
-    if (mode === 'title')   { onInsert('titulo',  result.split('\n').filter(Boolean)[0] || result); return; }
-    if (mode === 'summary') { onInsert('resumo',  result); return; }
-    onInsert('conteudo', result);
-  };
-
-  const copy = async () => {
-    await navigator.clipboard.writeText(result).catch(() => {});
-    setCopied(true); setTimeout(() => setCopied(false), 1800);
-  };
-
-  const mObj = MODES.find(m => m.id === mode);
-
-  return (
-    <div className="ai-panel">
-      <div className="ai-panel-head">
-        <span>✦ Assistente de escrita</span>
-        <button onClick={onClose} className="ai-close">×</button>
-      </div>
-      <div className="ai-scroll">
-        <p style={{ fontFamily:'var(--serif-body)', fontStyle:'italic', fontSize:'0.85rem', color:'var(--ink-3)', lineHeight:1.45, paddingBottom:'0.8rem', borderBottom:'1px solid var(--rule)', marginBottom:'0.6rem' }}>
-          Baseado no título, categoria e texto que você preencheu.
-        </p>
-        <div className="ai-modes">
-          {MODES.map(m => (
-            <button key={m.id} className={`ai-mode-btn ${mode===m.id?'active':''}`}
-              onClick={() => { setMode(m.id); setResult(''); setPrompt(''); }}>
-              {m.label}
-            </button>
-          ))}
-        </div>
-        <textarea className="ai-prompt" rows="3" value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          placeholder={mObj?.ph} />
-        <button className="ai-run" onClick={run} disabled={loading}>
-          {loading ? '…gerando' : '✦ Gerar'}
-        </button>
-        {result && (
-          <div className="ai-result">
-            <div className="ai-result-text">{result}</div>
-            <div className="ai-result-actions">
-              <button className="ai-insert-btn" onClick={handleInsert}>
-                {mode==='title' ? '↓ Usar 1º título' : mode==='summary' ? '↓ Usar como resumo' : '↓ Usar como conteúdo'}
-              </button>
-              <button className="ai-copy-btn" onClick={copy}>{copied ? '✓' : '📋'}</button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function slugify(str) {
-  return (str || '')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 60);
-}
-
 function fmtDate(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
@@ -1639,7 +1257,6 @@ function App() {
   const [uploading, setUploading] = useState(false); // image upload in progress
   const textareaRef   = useRef(null);
   const [imgEditorOpen, setImgEditorOpen] = useState(false);
-  const [aiPanelOpen,   setAiPanelOpen]   = useState(false);
 
   // Supabase client (singleton)
   const sb = useMemo(() => {
